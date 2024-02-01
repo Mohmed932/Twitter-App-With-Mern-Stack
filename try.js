@@ -22,3 +22,12 @@
 //   const res = await req.json();
 //   console.log(res);
 // })();
+
+
+// (async () => {
+//   const req = await fetch("http://localhost:5000/delete",{
+//     method: "DELETE",
+//   });
+//   const res = await req.json();
+//   console.log(res);
+// })();
