@@ -23,6 +23,10 @@ const UserSchema = new Schema(
       type: String,
       default: "male",
     },
+    bio: {
+      type: String,
+      default: "male",
+    },
     date_birth: {
       type: String,
       default: "25-5-2003",

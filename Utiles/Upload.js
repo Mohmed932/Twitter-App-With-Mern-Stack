@@ -1,21 +1,29 @@
 import multer from "multer";
-import fs from "fs";
+// import path from "path";
 
+// const __filename = new URL(import.meta.url).pathname;
+// const __dirname = path.dirname(__filename);
+// const photopath = path.join(__dirname,'../images')
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, "images");
-    },
-    filename: function (req, file, cb) {
-      cb(null, file.fieldname + "-" + req.user.username + "-" + +Date.now());
-    },
-  });
-  
-export const upload = multer({ storage });
+  destination: function (req, file, cb) {
+    cb(null, "images");
+  },
+  filename: function (req, file, cb) {
+    if (file) {
+      const imagePath =
+        file.fieldname +
+        "_" +
+        req.user.username +
+        "_" +
+        Date.now() +
+        "_" +
+        file.originalname;
+      cb(null, imagePath);
+    } else {
+      cb(null, false);
+    }
+  },
+});
 
-export const renameSync = async ({ originalname, path }) => {
-  const split = originalname.split(".");
-  const ext = split[split.length - 1];
-  const newPath = path + "." + ext;
-  fs.renameSync(path, newPath);
-  return newPath;
-};
+
+export const upload = multer({ storage });

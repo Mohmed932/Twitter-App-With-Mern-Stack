@@ -1,7 +1,8 @@
+import fs from "fs";
 import { User } from "../Models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { renameSync } from "../Utiles/Upload.js";
+import { Deleteimage, Uploadimage } from "../Utiles/Cloudinary.js";
 
 export const UserSignUp = async (req, res) => {
   const { username, password, email } = req.body;
@@ -48,7 +49,7 @@ export const UserLogin = async (req, res) => {
     }
     const token = await jwt.sign(
       {
-        _id: username._id,
+        _id: user._id,
         username: user.username,
         email: user.email,
         gender: user.gender,
@@ -72,29 +73,45 @@ export const UserLogin = async (req, res) => {
 export const UserProfile = async (req, res) => {
   return res.json({ decodeed: req.user });
 };
+export const UpdateProfileInformation = async (req, res) => {
+  try {
+    await User.findOneAndUpdate({ username: req.user.username },{$set:{
+      gender: req.body.gender,
+      bio: req.body.bio,
+      date_birth: req.body.date_birth
+    }});
+  } catch (error) {}
+};
 export const UpdateUserProfile = async (req, res) => {
   try {
-    const newPath = await renameSync(req.file);
-    const user = await User.findOneAndUpdate(
-      { username: req.user.username },
-      {
-        $set: {
-          "imageProfile.sourceImage": newPath,
-          "imageCover.sourceImage": newPath,
-        },
-      },
-      { new: true }
-    );
-    return res.json({ user });
+    // Access the uploaded file via req.file
+    if (!req.file) {
+      return res.json({ message: "no file chossed" });
+    }
+    // upload photo to cloudinary server
+    const result = await Uploadimage(`images/${req.file.filename}`);
+    const user = await User.findOne({ username: req.user.username });
+    if (user.imageProfile.imageId !== null) {
+      await Deleteimage(user.imageProfile.imageId);
+    }
+    user.imageProfile = {
+      sourceImage: result.secure_url,
+      imageId: result.public_id,
+    };
+    await user.save();
+    fs.unlinkSync(`images/${req.file.filename}`);
+    // Respond with a success message
+    return res.json({ message: "File uploaded successfully!" });
   } catch (error) {
-    return res.json({ message: `Server Error: ${error}` });
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 export const DeleteUserProfile = async (req, res) => {
   try {
     const user = await User.findOneAndDelete({ username: req.user.username });
-    return res.json({ message: "account deleted",user });
+    return res.json({ message: "account deleted", user });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
   }
