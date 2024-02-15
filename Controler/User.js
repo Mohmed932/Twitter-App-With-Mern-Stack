@@ -3,9 +3,12 @@ import { User } from "../Models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Deleteimage, Uploadimage } from "../Utiles/Cloudinary.js";
+import { Comments } from "../Models/Comments.js";
+import { Post } from "../Models/Post.js";
 
 export const UserSignUp = async (req, res) => {
   const { username, password, email } = req.body;
+  console.log(username, password, email);
   try {
     const existingUser = await User.findOne({ $or: [{ username }, { email }] });
 
@@ -71,16 +74,30 @@ export const UserLogin = async (req, res) => {
 };
 
 export const UserProfile = async (req, res) => {
-  return res.json({ decodeed: req.user });
+  try {
+    const user = await User.findOne({ _id: req.user._id })
+      .select("-password")
+      .populate("posts");
+    return res.json({ user });
+  } catch (error) {
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 export const UpdateProfileInformation = async (req, res) => {
   try {
-    await User.findOneAndUpdate({ username: req.user.username },{$set:{
-      gender: req.body.gender,
-      bio: req.body.bio,
-      date_birth: req.body.date_birth
-    }});
-  } catch (error) {}
+    await User.findOneAndUpdate(
+      { username: req.user.username },
+      {
+        $set: {
+          gender: req.body.gender,
+          bio: req.body.bio,
+          date_birth: req.body.date_birth,
+        },
+      }
+    );
+  } catch (error) {
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 export const UpdateUserProfile = async (req, res) => {
   try {
@@ -101,7 +118,7 @@ export const UpdateUserProfile = async (req, res) => {
     await user.save();
     fs.unlinkSync(`images/${req.file.filename}`);
     // Respond with a success message
-    return res.json({ message: "File uploaded successfully!" });
+    return res.json({ message: "File uploaded successfully!", user });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -111,6 +128,12 @@ export const UpdateUserProfile = async (req, res) => {
 export const DeleteUserProfile = async (req, res) => {
   try {
     const user = await User.findOneAndDelete({ username: req.user.username });
+    const posts = await Post.deleteMany({ author: user._id });
+    const imageId = posts.map((i) => i.postImage.imageId);
+    if (imageId.length > 0) {
+      Deleteimage(imageId);
+    }
+    await Comments.deleteMany({ userId: user._id });
     return res.json({ message: "account deleted", user });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });

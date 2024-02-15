@@ -25,7 +25,7 @@ const UserSchema = new Schema(
     },
     bio: {
       type: String,
-      default: "male",
+      default: "",
     },
     date_birth: {
       type: String,
@@ -56,7 +56,13 @@ const UserSchema = new Schema(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+UserSchema.virtual("posts", {
+  ref: "Post",
+  foreignField: "author",
+  localField: "_id",
+});
 
 export const User = model("User", UserSchema);

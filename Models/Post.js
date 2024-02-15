@@ -26,7 +26,7 @@ const PostSchema = new Schema(
         imageId: null,
       },
     },
-    like: [
+    likes: [
       {
         type: Schema.Types.ObjectId,
         ref: "User",
@@ -36,4 +36,9 @@ const PostSchema = new Schema(
   { timestamps: true }
 );
 
+PostSchema.virtual("comments", {
+  ref: "Comments",
+  foreignField: "PostId",
+  localField: "_id",
+});
 export const Post = model("Post", PostSchema);
