@@ -4,7 +4,7 @@ import {
   DeleteComment,
   GetComment,
   UpdateComment,
-} from "../Controler/Comments";
+} from "../Controler/Comments.js";
 import { isValid } from "../Utiles/IsValid.js";
 import { verifyToken } from "../Utiles/VerifyToken.js";
 

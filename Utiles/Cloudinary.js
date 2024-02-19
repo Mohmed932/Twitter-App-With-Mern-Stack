@@ -15,7 +15,7 @@ export const Uploadimage = async (imagePath) => {
     const result = await cloudinary.uploader.upload(imagePath, {
       use_filename: true, // Keep the original filename
     });
-    console.log("Upload successful:", result);
+    // console.log("Upload successful:", result);
     return result;
   } catch (error) {
     console.log(error);
@@ -36,5 +36,27 @@ export const Deleteimage = async (publicId) => {
   } catch (error) {
     // Handle any errors that occur during the deletion process
     console.error(`Error deleting photo with public ID '${publicId}':`, error);
+  }
+};
+
+export const DeletePhotos = async (photoPublicIds) => {
+  try {
+    const deletionResults = await Promise.all(
+      photoPublicIds.map((publicId) => cloudinary.uploader.destroy(publicId))
+    );
+
+    deletionResults.forEach((result) => {
+      if (result.result === "ok") {
+        console.log(
+          `Successfully deleted photo with public ID: ${result.public_id}`
+        );
+      } else {
+        console.error(
+          `Failed to delete photo with public ID: ${result.public_id}`
+        );
+      }
+    });
+  } catch (error) {
+    console.error("Error deleting photos:", error);
   }
 };

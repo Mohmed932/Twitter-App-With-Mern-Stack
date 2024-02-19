@@ -2,7 +2,7 @@ import fs from "fs";
 import { User } from "../Models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Deleteimage, Uploadimage } from "../Utiles/Cloudinary.js";
+import { DeletePhotos, Deleteimage, Uploadimage } from "../Utiles/Cloudinary.js";
 import { Comments } from "../Models/Comments.js";
 import { Post } from "../Models/Post.js";
 
@@ -85,7 +85,7 @@ export const UserProfile = async (req, res) => {
 };
 export const UpdateProfileInformation = async (req, res) => {
   try {
-    await User.findOneAndUpdate(
+    const update = await User.findOneAndUpdate(
       { username: req.user.username },
       {
         $set: {
@@ -93,8 +93,10 @@ export const UpdateProfileInformation = async (req, res) => {
           bio: req.body.bio,
           date_birth: req.body.date_birth,
         },
-      }
-    );
+      },
+      { new: true }
+    ).select("-password");
+    return res.json({ update });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
@@ -107,7 +109,9 @@ export const UpdateUserProfile = async (req, res) => {
     }
     // upload photo to cloudinary server
     const result = await Uploadimage(`images/${req.file.filename}`);
-    const user = await User.findOne({ username: req.user.username });
+    const user = await User.findOne(
+      { username: req.user.username },
+    ).select("-password");
     if (user.imageProfile.imageId !== null) {
       await Deleteimage(user.imageProfile.imageId);
     }
@@ -129,9 +133,9 @@ export const DeleteUserProfile = async (req, res) => {
   try {
     const user = await User.findOneAndDelete({ username: req.user.username });
     const posts = await Post.deleteMany({ author: user._id });
-    const imageId = posts.map((i) => i.postImage.imageId);
-    if (imageId.length > 0) {
-      Deleteimage(imageId);
+    const imageIds = posts.map((i) => i.postImage.imageId);
+    if (imageIds.length > 0) {
+      DeletePhotos(imageIds);
     }
     await Comments.deleteMany({ userId: user._id });
     return res.json({ message: "account deleted", user });

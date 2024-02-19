@@ -1,6 +1,6 @@
 import { Post } from "../Models/Post.js";
 import fs from "fs";
-import { Deleteimage, Uploadimage } from "../Utiles/Cloudinary.js";
+import { DeletePhotos, Deleteimage, Uploadimage } from "../Utiles/Cloudinary.js";
 import { Comments } from "../Models/Comments.js";
 
 // create a new post
@@ -76,11 +76,14 @@ export const UpdatePost = async (req, res) => {
             category: req.body.category,
           },
         },
-        { new: true }
+        {new: true}
       );
       return res.json({ update });
     }
-  } catch (error) {}
+    return res.status(400).json({ error: `you are not allowed to remove this post` });
+  } catch (error) {
+    return res.status(500).json({ error: `Internal Server Error:${error}` });
+  }
 };
 // update post image
 export const UpdatePostImage = async (req, res) => {
@@ -156,7 +159,7 @@ export const DeletePost = async (req, res) => {
     if (userPost.author.toString() === req.user._id || req.user.isAdmin) {
       await Post.findByIdAndDelete(userPost._id);
       await Comments.deleteOne({PostId: userPost._id});
-      Deleteimage(userPost.postImage.imageId);
+      DeletePhotos(userPost.postImage.imageId);
       return res.json({ message: "Post deleted successfully" });
     } else {
       return res.status(400).json({

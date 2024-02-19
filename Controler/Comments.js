@@ -10,7 +10,7 @@ export const CreateComment = async (req, res) => {
     }
     const userId = await User.findById(req.user._id);
     const Comment = new Comments({
-      postId: postId._id,
+      PostId: postId._id,
       userId: userId._id,
       username: userId.username,
       text: req.body.text,
@@ -18,13 +18,13 @@ export const CreateComment = async (req, res) => {
     await Comment.save();
     return res.status(203).json({ Comment });
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: `Internal Server Error :${error}` });
   }
 };
 
 export const GetComment = async (req, res) => {
   try {
-    const Comment = await Comments.find({ PostId: req.params.id }).populate('comments');
+    const Comment = await Comments.find({ PostId: req.params.id })
     if (!Comment) {
       return res
         .status(404)
@@ -32,7 +32,7 @@ export const GetComment = async (req, res) => {
     }
     return res.json({ Comment });
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: `Internal Server Error :${error}` });
   }
 };
 
@@ -44,7 +44,7 @@ export const DeleteComment = async (req, res) => {
         .status(404)
         .json({ message: "No such comment or post deleted" });
     }
-    if (Comment.userId !== req.user._id) {
+    if (Comment.userId.toString() !== req.user._id) {
       return res
         .status(400)
         .json({ message: "you are not allowed to delete this comment" });
@@ -64,7 +64,7 @@ export const UpdateComment = async (req, res) => {
         .status(404)
         .json({ message: "No such comment or post deleted" });
     }
-    if (Comment.userId !== req.user._id) {
+    if (Comment.userId.toString() !== req.user._id) {
       return res
         .status(400)
         .json({ message: "you are not allowed to delete this comment" });
