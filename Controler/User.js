@@ -2,13 +2,18 @@ import fs from "fs";
 import { User } from "../Models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { DeletePhotos, Deleteimage, Uploadimage } from "../Utiles/Cloudinary.js";
+import {
+  DeletePhotos,
+  Deleteimage,
+  Uploadimage,
+} from "../Utiles/Cloudinary.js";
 import { Comments } from "../Models/Comments.js";
 import { Post } from "../Models/Post.js";
+import { GenerateToken } from "../Utiles/Random.js";
+import { Veryfation } from "../Models/Veryfation.js";
 
 export const UserSignUp = async (req, res) => {
   const { username, password, email } = req.body;
-  console.log(username, password, email);
   try {
     const existingUser = await User.findOne({ $or: [{ username }, { email }] });
 
@@ -26,9 +31,16 @@ export const UserSignUp = async (req, res) => {
     const hash = await bcrypt.hash(password, salt);
     const SaveUser = new User({ username, email, password: hash });
     await SaveUser.save();
+    const token = await GenerateToken();
+    const SendEmail = new Veryfation({
+      userId: SaveUser._id,
+      token,
+    });
+    await SendEmail.save();
+    const linkVeryfation = `http://localhost:5000/Confirm_email/${SaveUser._id}/confirm_token/${token}`;
     return res.json({
       message: "Congratulations, you now have an account. Please log in",
-      userData: SaveUser,
+      linkVeryfation,
     });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
@@ -48,6 +60,21 @@ export const UserLogin = async (req, res) => {
     if (!match) {
       return res.json({
         message: "Incorrect username or password",
+      });
+    }
+    if (!user.isActive) {
+      const CheckVeryfation = await Veryfation.findOne({ userId: user._id });
+      if (!CheckVeryfation) {
+        return res.json({
+          message: "you should to create a new account",
+        });
+      }
+      const linkVeryfation = `http://localhost:5000/Confirm_email/${CheckVeryfation.userId}/confirm_token/${CheckVeryfation.token}`;
+      // send link ti email
+      return res.json({
+        message:
+          "you should to active the email address from the message we sent it to the email",
+        linkVeryfation,
       });
     }
     const token = await jwt.sign(
@@ -96,12 +123,29 @@ export const UpdateProfileInformation = async (req, res) => {
       },
       { new: true }
     ).select("-password");
+    if (req.body.password) {
+      const Salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(req.body.password, Salt);
+      update.password = hash;
+      await update.save();
+      return res.json({ update, message: "password updated successfully" });
+    }
+    if (req.body.username) {
+      const username = await User.find({ username: req.body.username });
+      if (username.length === 0) {
+        update.username = req.body.username;
+        await update.save();
+        return res.json({ update, message: "username updated successfully" });
+      } else {
+        return res.json({ update, message: "username already exists" });
+      }
+    }
     return res.json({ update });
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: `Internal Server Error ${error}` });
   }
 };
-export const UpdateUserProfile = async (req, res) => {
+export const UpdateUserImageProfile = async (req, res) => {
   try {
     // Access the uploaded file via req.file
     if (!req.file) {
@@ -109,13 +153,40 @@ export const UpdateUserProfile = async (req, res) => {
     }
     // upload photo to cloudinary server
     const result = await Uploadimage(`images/${req.file.filename}`);
-    const user = await User.findOne(
-      { username: req.user.username },
-    ).select("-password");
+    const user = await User.findOne({ username: req.user.username }).select(
+      "-password"
+    );
     if (user.imageProfile.imageId !== null) {
       await Deleteimage(user.imageProfile.imageId);
     }
     user.imageProfile = {
+      sourceImage: result.secure_url,
+      imageId: result.public_id,
+    };
+    await user.save();
+    fs.unlinkSync(`images/${req.file.filename}`);
+    // Respond with a success message
+    return res.json({ message: "File uploaded successfully!", user });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+export const UpdateUserImageCover = async (req, res) => {
+  try {
+    // Access the uploaded file via req.file
+    if (!req.file) {
+      return res.json({ message: "no file chossed" });
+    }
+    // upload photo to cloudinary server
+    const result = await Uploadimage(`images/${req.file.filename}`);
+    const user = await User.findOne({ username: req.user.username }).select(
+      "-password"
+    );
+    if (user.imageCover.imageId !== null) {
+      await Deleteimage(user.imageCover.imageId);
+    }
+    user.imageCover = {
       sourceImage: result.secure_url,
       imageId: result.public_id,
     };
@@ -139,6 +210,96 @@ export const DeleteUserProfile = async (req, res) => {
     }
     await Comments.deleteMany({ userId: user._id });
     return res.json({ message: "account deleted", user });
+  } catch (error) {
+    return res.json({ message: `Server Error: ${error}` });
+  }
+};
+
+export const ConfirmEmail = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const token = req.params.token;
+    const user = await User.findOne({ _id });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User not found or invalid link" });
+    }
+    const confirmUser = await Veryfation.findOne({
+      userId: user._id,
+      token,
+    });
+    if (!confirmUser) {
+      return res.status(404).json({ message: "invalid token" });
+    }
+    user.isActive = true;
+    await user.save();
+    // Delete confirmation entry
+    await Veryfation.deleteOne({ _id: confirmUser._id });
+
+    return res.status(200).json({ message: "Email confirmed successfully" });
+  } catch (error) {
+    return res.json({ message: `Server Error: ${error}` });
+  }
+};
+
+export const SendEmailToResetPassword = async (req, res) => {
+  try {
+    const email = req.body.email;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const CheckVeryfation = await Veryfation.findById(user._id);
+    if (CheckVeryfation) {
+      await Veryfation.deleteMany({ userId: user._id });
+    }
+    const token = await GenerateToken();
+    const SendEmail = new Veryfation({
+      userId: user._id,
+      token,
+    });
+    await SendEmail.save();
+    const linkVeryfation = `http://localhost:5000/reset_password/${user._id}/confirm_token/${token}`;
+    // send to email
+    user.isActive = true;
+    await user.save();
+    return res.json({
+      message: "we send email confirmation to reset password",
+      linkVeryfation,
+    });
+  } catch (error) {
+    return res.json({ message: `Server Error: ${error}` });
+  }
+};
+
+export const ResetPassword = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const token = req.params.token;
+    const user = await User.findOne({ _id });
+    if (!user) {
+      return res.json({
+        message: "Sorry, there is no account with this id",
+      });
+    }
+    const confirmUser = await Veryfation.findOne({
+      userId: user._id,
+      token,
+    });
+    if (!confirmUser) {
+      return res.status(400).json({ message: "invalid token" });
+    }
+    const password = req.body.password;
+    const Salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(password, Salt);
+    user.password = hash;
+    await user.save();
+    await Veryfation.deleteOne({
+      userId: confirmUser.userId,
+      token: confirmUser.token,
+    });
+    return res.json({ message: "password updated" });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
   }
