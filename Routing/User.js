@@ -11,9 +11,9 @@ import {
   UserProfile,
   UserSignUp,
 } from "../Controler/User.js";
-import { verifyToken } from "../Utiles/VerifyToken.js";
+import { verifyToken } from "../Middelware/VerifyToken.js";
 import { upload } from "../Utiles/Upload.js";
-import { isValid } from "../Utiles/IsValid.js";
+import { isValid } from "../Middelware/IsValid.js";
 
 export const UserRouter = Router();
 
@@ -24,26 +24,39 @@ UserRouter.route("/signup").post(UserSignUp);
 UserRouter.route("/login").post(UserLogin);
 UserRouter.route("/Profile").get(verifyToken, UserProfile);
 // update the user profile photo
-UserRouter.route("/UpdateProfileInformation").put(verifyToken,UpdateProfileInformation)
+UserRouter.route("/UpdateProfileInformation").put(
+  verifyToken,
+  UpdateProfileInformation
+);
 // update the user profile photo
 UserRouter.route("/UpdateUserImageProfile").put(
   verifyToken,
   upload.single("image"),
-  UpdateUserImageProfile);
-  // update the user cover photo
+  UpdateUserImageProfile
+);
+// update the user cover photo
 UserRouter.route("/UpdateUserImageCover").put(
   verifyToken,
   upload.single("image"),
-  UpdateUserImageCover);
+  UpdateUserImageCover
+);
 
 // Delete the user profile
 UserRouter.delete("/delete", verifyToken, DeleteUserProfile);
 
 // conform email address
-UserRouter.route("/Confirm_email/:id/confirm_token/:token").get(isValid,ConfirmEmail);
+UserRouter.route("/Confirm_email/:id/confirm_token/:token").get(
+  isValid,
+  ConfirmEmail
+);
 
 // send email to reset password
-UserRouter.route("/send_email_to_reset_password").post(SendEmailToResetPassword);
+UserRouter.route("/send_email_to_reset_password").post(
+  SendEmailToResetPassword
+);
 
 //reset password
-UserRouter.route("/reset_password/:id/confirm_token/:token").put(isValid,ResetPassword);
+UserRouter.route("/reset_password/:id/confirm_token/:token").put(
+  isValid,
+  ResetPassword
+);

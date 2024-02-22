@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { verifyToken } from "../Utiles/VerifyToken.js";
 import { upload } from "../Utiles/Upload.js";
 import {
   CreatePost,
@@ -10,7 +9,8 @@ import {
   UpdatePost,
   UpdatePostImage,
 } from "../Controler/Post.js";
-import { isValid } from "../Utiles/IsValid.js";
+import { verifyToken } from "../Middelware/VerifyToken.js";
+import { isValid } from "../Middelware/IsValid.js";
 
 export const PostRouter = Router();
 

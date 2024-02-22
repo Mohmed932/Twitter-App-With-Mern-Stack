@@ -11,6 +11,7 @@ import { Comments } from "../Models/Comments.js";
 import { Post } from "../Models/Post.js";
 import { GenerateToken } from "../Utiles/Random.js";
 import { Veryfation } from "../Models/Veryfation.js";
+import { SendMAil } from "../Utiles/Mail.js";
 
 export const UserSignUp = async (req, res) => {
   const { username, password, email } = req.body;
@@ -38,9 +39,14 @@ export const UserSignUp = async (req, res) => {
     });
     await SendEmail.save();
     const linkVeryfation = `http://localhost:5000/Confirm_email/${SaveUser._id}/confirm_token/${token}`;
+    await SendMAil(
+      linkVeryfation,
+      SaveUser.email,
+      "Confirm email",
+      "this link to Confirm your email address"
+    );
     return res.json({
       message: "Congratulations, you now have an account. Please log in",
-      linkVeryfation,
     });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
@@ -250,7 +256,7 @@ export const SendEmailToResetPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const CheckVeryfation = await Veryfation.findById(user._id);
+    const CheckVeryfation = await Veryfation.find({ userId: user._id });
     if (CheckVeryfation) {
       await Veryfation.deleteMany({ userId: user._id });
     }
@@ -262,11 +268,16 @@ export const SendEmailToResetPassword = async (req, res) => {
     await SendEmail.save();
     const linkVeryfation = `http://localhost:5000/reset_password/${user._id}/confirm_token/${token}`;
     // send to email
+    await SendMAil(
+      linkVeryfation,
+      user.email,
+      "Resete Password",
+      "this link to Resete Password from your email address"
+    );
     user.isActive = true;
     await user.save();
     return res.json({
       message: "we send email confirmation to reset password",
-      linkVeryfation,
     });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
