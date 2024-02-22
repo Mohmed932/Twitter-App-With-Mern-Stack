@@ -5,7 +5,7 @@ import { config } from "dotenv";
 import { UserRouter } from "./Routing/User.js";
 import { PostRouter } from "./Routing/Post.js";
 import { CommentRouter } from "./Routing/Comments.js";
-import { errorHandler } from "./Utiles/error.js";
+import { errorHandler } from "./Utiles/Error.js";
 
 const app = express();
 config();
