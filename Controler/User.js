@@ -241,7 +241,7 @@ export const ConfirmEmail = async (req, res) => {
     user.isActive = true;
     await user.save();
     // Delete confirmation entry
-    await Veryfation.deleteOne({ _id: confirmUser._id });
+    await Veryfation.delete({ _id: confirmUser._id });
 
     return res.status(200).json({ message: "Email confirmed successfully" });
   } catch (error) {
@@ -306,9 +306,8 @@ export const ResetPassword = async (req, res) => {
     const hash = await bcrypt.hash(password, Salt);
     user.password = hash;
     await user.save();
-    await Veryfation.deleteOne({
+    await Veryfation.delete({
       userId: confirmUser.userId,
-      token: confirmUser.token,
     });
     return res.json({ message: "password updated" });
   } catch (error) {
