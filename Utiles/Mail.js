@@ -1,6 +1,13 @@
 import nodemailer from "nodemailer";
 
-export const SendMAil = async (linkVeryfation, email, subject, desc) => {
+export const SendMAil = async (
+  linkVeryfation,
+  email,
+  name,
+  surname,
+  subject,
+  desc
+) => {
   // create reusable transporter object using the default SMTP transport
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -16,7 +23,7 @@ export const SendMAil = async (linkVeryfation, email, subject, desc) => {
     // from: "اول بأول ",
     to: email, // list of receivers
     subject, // Subject line
-    text: `Welcom ${email}`, // plain text body
+    text: `Welcom ${name + surname}`, // plain text body
     html: `<!DOCTYPE html>
 <html>
   <head>
@@ -113,7 +120,7 @@ export const SendMAil = async (linkVeryfation, email, subject, desc) => {
   <body>
     <div class="container">
       <h1>Welcom to in your blog/h1>
-      <p>Welcom ${email}</p>
+      <p>Welcom ${name} ${surname}</p>
       <p>
        ${desc}
       </p>

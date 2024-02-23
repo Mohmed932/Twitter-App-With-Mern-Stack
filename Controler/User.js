@@ -14,7 +14,8 @@ import { Veryfation } from "../Models/Veryfation.js";
 import { SendMAil } from "../Utiles/Mail.js";
 
 export const UserSignUp = async (req, res) => {
-  const { username, password, email } = req.body;
+  const { name, surname, email, username, gender, date_birth, password } =
+    req.body;
   try {
     const existingUser = await User.findOne({ $or: [{ username }, { email }] });
 
@@ -25,12 +26,20 @@ export const UserSignUp = async (req, res) => {
       } else {
         message = "This email already has an account";
       }
-      return res.json({ message });
+      return res.status(409).json({ message });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
-    const SaveUser = new User({ username, email, password: hash });
+    const SaveUser = new User({
+      name,
+      surname,
+      email,
+      username,
+      gender,
+      date_birth,
+      password: hash,
+    });
     await SaveUser.save();
     const token = await GenerateToken();
     const SendEmail = new Veryfation({
@@ -42,6 +51,8 @@ export const UserSignUp = async (req, res) => {
     await SendMAil(
       linkVeryfation,
       SaveUser.email,
+      name,
+      surname,
       "Confirm email",
       "this link to Confirm your email address"
     );
@@ -271,6 +282,8 @@ export const SendEmailToResetPassword = async (req, res) => {
     await SendMAil(
       linkVeryfation,
       user.email,
+      user.name,
+      user.surname,
       "Resete Password",
       "this link to Resete Password from your email address"
     );

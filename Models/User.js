@@ -13,24 +13,40 @@ const UserSchema = new Schema(
       unique: true,
       required: true,
       trim: true,
-      email: true
+      email: true,
     },
     password: {
       type: String,
       required: true,
       trim: true,
     },
+    name: {
+      type: String,
+      required: true,
+    },
+    surname: {
+      type: String,
+      required: true,
+    },
     gender: {
       type: String,
-      default: "male",
+      required: true,
     },
     bio: {
       type: String,
       default: "",
     },
+    follower: {
+      type: Number,
+      default: 0,
+    },
+    following: {
+      type: Number,
+      default: 0,
+    },
     date_birth: {
       type: String,
-      default: "25-5-2003",
+      required: true,
     },
     imageProfile: {
       type: Object,
