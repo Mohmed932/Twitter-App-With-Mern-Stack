@@ -17,6 +17,9 @@ app.use(UserRouter);
 app.use(PostRouter);
 app.use(CommentRouter);
 app.use(errorHandler);
+app.get("/", (res) => {
+  return res.json({ message: "hello in uber" });
+});
 
 connect(process.env.MONGO_DB_URL)
   .then(() => {
