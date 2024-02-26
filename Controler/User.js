@@ -47,7 +47,7 @@ export const UserSignUp = async (req, res) => {
       token,
     });
     await SendEmail.save();
-    const linkVeryfation = `http://localhost:5000/Confirm_email/${SaveUser._id}/confirm_token/${token}`;
+    const linkVeryfation = `http://localhost:3000/Confirm_email/${SaveUser._id}/confirm_token/${token}`;
     await SendMAil(
       linkVeryfation,
       SaveUser.email,
@@ -57,7 +57,7 @@ export const UserSignUp = async (req, res) => {
       "this link to Confirm your email address"
     );
     return res.json({
-      message: "Congratulations, you now have an account. Please log in",
+      message: "We send email to you please verify your email address",
     });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
@@ -252,7 +252,7 @@ export const ConfirmEmail = async (req, res) => {
     user.isActive = true;
     await user.save();
     // Delete confirmation entry
-    await Veryfation.delete({ _id: confirmUser._id });
+    await Veryfation.deleteMany({ userId: user._id });
 
     return res.status(200).json({ message: "Email confirmed successfully" });
   } catch (error) {
@@ -319,9 +319,7 @@ export const ResetPassword = async (req, res) => {
     const hash = await bcrypt.hash(password, Salt);
     user.password = hash;
     await user.save();
-    await Veryfation.delete({
-      userId: confirmUser.userId,
-    });
+    await Veryfation.deleteMany({ userId: user._id });
     return res.json({ message: "password updated" });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
