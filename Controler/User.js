@@ -64,34 +64,40 @@ export const UserSignUp = async (req, res) => {
   }
 };
 export const UserLogin = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password ,email} = req.body;
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ $or:[{username},{email}] });
 
     if (!user) {
-      return res.json({
-        message: "Sorry, there is no account with this username",
+      return res.status(404).json({
+        message: "Incorrect username or password",
       });
     }
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      return res.json({
+      return res.status(404).json({
         message: "Incorrect username or password",
       });
     }
     if (!user.isActive) {
-      const CheckVeryfation = await Veryfation.findOne({ userId: user._id });
-      if (!CheckVeryfation) {
-        return res.json({
-          message: "you should to create a new account",
-        });
-      }
-      const linkVeryfation = `http://localhost:5000/Confirm_email/${CheckVeryfation.userId}/confirm_token/${CheckVeryfation.token}`;
-      // send link ti email
-      return res.json({
-        message:
-          "you should to active the email address from the message we sent it to the email",
+      await Veryfation.deleteMany({ userId: user._id });
+      const token = await GenerateToken();
+      const SendEmail = new Veryfation({
+        userId: user._id,
+        token,
+      });
+      await SendEmail.save();
+      const linkVeryfation = `http://localhost:3000/Confirm_email/${user._id}/confirm_token/${token}`;
+      await SendMAil(
         linkVeryfation,
+        user.email,
+        user.name,
+        user.surname,
+        "Confirm email",
+        "this link to Confirm your email address"
+      );
+      return res.json({
+        message: "We send email to you please verify your email address",
       });
     }
     const token = await jwt.sign(
@@ -262,22 +268,19 @@ export const ConfirmEmail = async (req, res) => {
 
 export const SendEmailToResetPassword = async (req, res) => {
   try {
-    const email = req.body.email;
-    const user = await User.findOne({ email });
+    const {email,username} = req.body;
+    const user = await User.findOne({ $or:[{email},{username}] });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "This email or username does not have an account yet" });
     }
-    const CheckVeryfation = await Veryfation.find({ userId: user._id });
-    if (CheckVeryfation) {
-      await Veryfation.deleteMany({ userId: user._id });
-    }
+    await Veryfation.deleteMany({ userId: user._id });
     const token = await GenerateToken();
     const SendEmail = new Veryfation({
       userId: user._id,
       token,
     });
     await SendEmail.save();
-    const linkVeryfation = `http://localhost:5000/reset_password/${user._id}/confirm_token/${token}`;
+    const linkVeryfation = `http://localhost:3000/reset_password/${user._id}/confirm_token/${token}`;
     // send to email
     await SendMAil(
       linkVeryfation,
@@ -303,8 +306,8 @@ export const ResetPassword = async (req, res) => {
     const token = req.params.token;
     const user = await User.findOne({ _id });
     if (!user) {
-      return res.json({
-        message: "Sorry, there is no account with this id",
+      return res.status(400).json({
+        message: "invalid token",
       });
     }
     const confirmUser = await Veryfation.findOne({

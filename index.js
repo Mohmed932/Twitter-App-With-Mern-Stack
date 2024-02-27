@@ -17,7 +17,7 @@ app.use(UserRouter);
 app.use(PostRouter);
 app.use(CommentRouter);
 app.use(errorHandler);
-app.get("/", (res) => {
+app.get("/", (req,res) => {
   return res.json({ message: "hello in uber" });
 });
 
