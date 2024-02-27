@@ -9,7 +9,7 @@ export const isValid = (req, res, next) => {
     if (isValidObjectId(req.params.id)) {
       next();
     } else {
-      return res.json({ message: "Invalid id" });
+      return res.status(400).json({ message: "Invalid id" });
     }
   } catch (error) {
     return res.status(500).json({ error: `Internal Server Error : ${error}` });

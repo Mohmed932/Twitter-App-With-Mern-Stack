@@ -64,9 +64,9 @@ export const UserSignUp = async (req, res) => {
   }
 };
 export const UserLogin = async (req, res) => {
-  const { username, password ,email} = req.body;
+  const { username, password, email } = req.body;
   try {
-    const user = await User.findOne({ $or:[{username},{email}] });
+    const user = await User.findOne({ $or: [{ username }, { email }] });
 
     if (!user) {
       return res.status(404).json({
@@ -268,10 +268,12 @@ export const ConfirmEmail = async (req, res) => {
 
 export const SendEmailToResetPassword = async (req, res) => {
   try {
-    const {email,username} = req.body;
-    const user = await User.findOne({ $or:[{email},{username}] });
+    const { email, username } = req.body;
+    const user = await User.findOne({ $or: [{ email }, { username }] });
     if (!user) {
-      return res.status(404).json({ message: "This email or username does not have an account yet" });
+      return res.status(404).json({
+        message: "This email or username does not have an account yet",
+      });
     }
     await Veryfation.deleteMany({ userId: user._id });
     const token = await GenerateToken();
@@ -295,6 +297,29 @@ export const SendEmailToResetPassword = async (req, res) => {
     return res.json({
       message: "we send email confirmation to reset password",
     });
+  } catch (error) {
+    return res.json({ message: `Server Error: ${error}` });
+  }
+};
+
+export const CheckLinkforResetPassword = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const token = req.params.token;
+    const user = await User.findOne({ _id });
+    if (!user) {
+      return res.status(400).json({
+        message: "invalid token",
+      });
+    }
+    const confirmUser = await Veryfation.findOne({
+      userId: user._id,
+      token,
+    });
+    if (!confirmUser) {
+      return res.status(400).json({ message: "invalid token" });
+    }
+    return res.json({ message: "now you can reset password" });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
   }

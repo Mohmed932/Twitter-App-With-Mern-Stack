@@ -7,6 +7,8 @@ export const verifyToken = async (req, res, next) => {
     req.user = decodeed;
     next();
   } catch (error) {
-    return res.json({ message: `Token verification failed: ${error}` });
+    return res
+      .status(404)
+      .json({ message: `Token verification failed: ${error}` });
   }
 };

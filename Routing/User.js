@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  CheckLinkforResetPassword,
   ConfirmEmail,
   DeleteUserProfile,
   ResetPassword,
@@ -56,7 +57,6 @@ UserRouter.route("/send_email_to_reset_password").post(
 );
 
 //reset password
-UserRouter.route("/reset_password/:id/confirm_token/:token").put(
-  isValid,
-  ResetPassword
-);
+UserRouter.route("/reset_password/:id/confirm_token/:token")
+  .get(isValid, CheckLinkforResetPassword)
+  .put(isValid, ResetPassword);
