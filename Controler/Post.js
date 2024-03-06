@@ -1,49 +1,50 @@
 import { Post } from "../Models/Post.js";
 import fs from "fs";
-import { DeletePhotos, Deleteimage, Uploadimage } from "../Utiles/Cloudinary.js";
+import {
+  DeletePhotos,
+  Deleteimage,
+  Uploadimage,
+} from "../Utiles/Cloudinary.js";
 import { Comments } from "../Models/Comments.js";
 
 // create a new post
 export const CreatePost = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.json({ message: "no file chossed" });
+    let user;
+    if (req.file) {
+      const result = await Uploadimage(`images/${req.file.filename}`);
+      user = await Post.create({
+        title: req.body.title,
+        author: req.user._id,
+        authorUserName: req.user.username,
+        authorUser: `${req.user.name} ${req.user.surname}`,
+        authorimageProfile: req.user.imageProfile.sourceImage,
+        postImage: {
+          url: result.secure_url,
+          imageId: result.public_id,
+        },
+      });
+      fs.unlinkSync(`images/${req.file.filename}`);
+    } else {
+      user = await Post.create({
+        title: req.body.title,
+        author: req.user._id,
+        authorUserName: req.user.username,
+        authorUser: `${req.user.name} ${req.user.surname}`,
+        authorimageProfile: req.user.imageProfile.sourceImage,
+      });
     }
-    const result = await Uploadimage(`images/${req.file.filename}`);
-
-    const user = await Post.create({
-      title: req.body.title,
-      description: req.body.description,
-      category: req.body.category,
-      author: req.user._id,
-      postImage: {
-        url: result.secure_url,
-        imageId: result.public_id,
-      },
-    });
-    fs.unlinkSync(`images/${req.file.filename}`);
     return res.json({ user });
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: `Internal Server Error : ${error}` });
   }
 };
 
 // get all the posts
 export const GetPosts = async (req, res) => {
   try {
-    const { category, page, limit } = req.query;
-    if (page) {
-      const user = await Post.find()
-        .skip(page - 1 * limit)
-        .sort({ created_at: -1 });
-      return res.json({ user });
-    } else if (category) {
-      const user = await Post.find({ category }).sort({ created_at: -1 });
-      return res.json({ user });
-    } else {
-      const user = await Post.find().sort({ created_at: -1 });
-      return res.json({ user });
-    }
+    const user = await Post.find().sort({ createdAt: -1 });
+    return res.json({ user });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
@@ -76,11 +77,13 @@ export const UpdatePost = async (req, res) => {
             category: req.body.category,
           },
         },
-        {new: true}
+        { new: true }
       );
       return res.json({ update });
     }
-    return res.status(400).json({ error: `you are not allowed to remove this post` });
+    return res
+      .status(400)
+      .json({ error: `you are not allowed to remove this post` });
   } catch (error) {
     return res.status(500).json({ error: `Internal Server Error:${error}` });
   }
@@ -158,7 +161,7 @@ export const DeletePost = async (req, res) => {
     }
     if (userPost.author.toString() === req.user._id || req.user.isAdmin) {
       await Post.findByIdAndDelete(userPost._id);
-      await Comments.deleteOne({PostId: userPost._id});
+      await Comments.deleteOne({ PostId: userPost._id });
       DeletePhotos(userPost.postImage.imageId);
       return res.json({ message: "Post deleted successfully" });
     } else {

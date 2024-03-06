@@ -4,20 +4,24 @@ const PostSchema = new Schema(
   {
     title: {
       type: String,
-      required: true,
+      length: 1,
     },
     description: {
       type: String,
-      required: true,
-    },
-    category: {
-      type: String,
-      required: true,
     },
     author: {
       type: Schema.Types.ObjectId,
       ref: "User",
       require: true,
+    },
+    authorUserName: {
+      type: String,
+    },
+    authorUser: {
+      type: String,
+    },
+    authorimageProfile: {
+      type: String,
     },
     postImage: {
       type: Object,

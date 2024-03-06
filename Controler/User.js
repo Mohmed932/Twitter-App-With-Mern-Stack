@@ -104,6 +104,8 @@ export const UserLogin = async (req, res) => {
       {
         _id: user._id,
         username: user.username,
+        name: user.name,
+        surname: user.surname,
         email: user.email,
         gender: user.gender,
         date_birth: user.date_birth,

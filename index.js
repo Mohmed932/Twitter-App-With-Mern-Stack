@@ -10,14 +10,14 @@ import { errorHandler } from "./Utiles/Error.js";
 const app = express();
 config();
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(UserRouter);
 app.use(PostRouter);
 app.use(CommentRouter);
 app.use(errorHandler);
-app.get("/", (req,res) => {
+app.get("/", (req, res) => {
   return res.json({ message: "hello in uber" });
 });
 
