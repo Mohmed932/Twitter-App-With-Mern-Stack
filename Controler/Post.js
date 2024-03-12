@@ -68,50 +68,43 @@ export const UpdatePost = async (req, res) => {
       return res.status(404).json({ message: "Not Found" });
     }
     if (post.author.toString() === req.user._id || req.user.isAdmin) {
-      const update = await Post.findByIdAndUpdate(
-        { _id },
-        {
-          $set: {
-            title: req.body.title,
-            description: req.body.description,
-            category: req.body.category,
+      if (req.file) {
+        console.log("Update image file");
+        await Deleteimage(post.postImage.imageId);
+        const result = await Uploadimage(`images/${req.file.filename}`);
+        const update = await Post.findByIdAndUpdate(
+          { _id },
+          {
+            $set: {
+              title: req.body.title,
+              postImage: {
+                url: result.secure_url,
+                imageId: result.public_id,
+              },
+            },
           },
-        },
-        { new: true }
-      );
-      return res.json({ update });
+          { new: true }
+        );
+        fs.unlinkSync(`images/${req.file.filename}`);
+        return res.json({ update });
+      } else {
+        const update = await Post.findByIdAndUpdate(
+          { _id },
+          {
+            $set: {
+              title: req.body.title,
+            },
+          },
+          { new: true }
+        );
+        return res.json({ update });
+      }
     }
     return res
       .status(400)
       .json({ error: `you are not allowed to remove this post` });
   } catch (error) {
     return res.status(500).json({ error: `Internal Server Error:${error}` });
-  }
-};
-// update post image
-export const UpdatePostImage = async (req, res) => {
-  const _id = req.params.id;
-  try {
-    if (!req.file) {
-      return res.status(404).json({ message: "no file found" });
-    }
-    const post = await Post.findOne({ _id });
-    if (!post) {
-      return res.status(404).json({ message: "Not Found" });
-    }
-    if (post.author.toString() === req.user._id || req.user.isAdmin) {
-      await Deleteimage(post.postImage.imageId);
-      const result = await Uploadimage(`images/${req.file.filename}`);
-      post.postImage = {
-        url: result.secure_url,
-        imageId: result.public_id,
-      };
-      await post.save();
-      fs.unlinkSync(`images/${req.file.filename}`);
-      return res.json({ post });
-    }
-  } catch (error) {
-    return res.status(500).json({ error: `Internal Server Error ${error}` });
   }
 };
 // toggle likes

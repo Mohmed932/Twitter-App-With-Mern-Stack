@@ -7,7 +7,6 @@ import {
   SinglePost,
   ToggleLike,
   UpdatePost,
-  UpdatePostImage,
 } from "../Controler/Post.js";
 import { verifyToken } from "../Middelware/VerifyToken.js";
 import { isValid } from "../Middelware/IsValid.js";
@@ -22,12 +21,6 @@ PostRouter.route("/createpost").post(
 PostRouter.route("/posts").get(GetPosts);
 PostRouter.route("/posts/:id")
   .get(isValid, SinglePost)
-  .put(isValid, verifyToken, UpdatePost)
+  .put(isValid, verifyToken, upload.single("image"), UpdatePost)
   .delete(isValid, verifyToken, DeletePost);
-PostRouter.route("/post/image/:id").put(
-  isValid,
-  verifyToken,
-  upload.single("image"),
-  UpdatePostImage
-);
 PostRouter.route("/post/likes/:id").put(isValid, verifyToken, ToggleLike);
