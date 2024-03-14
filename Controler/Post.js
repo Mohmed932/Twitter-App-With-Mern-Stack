@@ -68,7 +68,18 @@ export const UpdatePost = async (req, res) => {
       return res.status(404).json({ message: "Not Found" });
     }
     if (post.author.toString() === req.user._id || req.user.isAdmin) {
-      if (req.file) {
+      if (!req.file) {
+        const update = await Post.findByIdAndUpdate(
+          { _id },
+          {
+            $set: {
+              title: req.body.title,
+            },
+          },
+          { new: true }
+        );
+        return res.json({ update });
+      } else {
         console.log("Update image file");
         await Deleteimage(post.postImage.imageId);
         const result = await Uploadimage(`images/${req.file.filename}`);
@@ -87,23 +98,13 @@ export const UpdatePost = async (req, res) => {
         );
         fs.unlinkSync(`images/${req.file.filename}`);
         return res.json({ update });
-      } else {
-        const update = await Post.findByIdAndUpdate(
-          { _id },
-          {
-            $set: {
-              title: req.body.title,
-            },
-          },
-          { new: true }
-        );
-        return res.json({ update });
       }
     }
     return res
       .status(400)
       .json({ error: `you are not allowed to remove this post` });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: `Internal Server Error:${error}` });
   }
 };
