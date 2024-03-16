@@ -3,6 +3,7 @@ import { upload } from "../Utiles/Upload.js";
 import {
   CreatePost,
   DeletePost,
+  GetPostInterActions,
   GetPosts,
   SinglePost,
   ToggleLike,
@@ -24,3 +25,8 @@ PostRouter.route("/posts/:id")
   .put(isValid, verifyToken, upload.single("image"), UpdatePost)
   .delete(isValid, verifyToken, DeletePost);
 PostRouter.route("/post/likes/:id").put(isValid, verifyToken, ToggleLike);
+PostRouter.route("/post/GetPostInterActions/:id").get(
+  isValid,
+  verifyToken,
+  GetPostInterActions
+);
