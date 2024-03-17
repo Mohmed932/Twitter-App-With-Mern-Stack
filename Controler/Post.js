@@ -6,6 +6,7 @@ import {
   Uploadimage,
 } from "../Utiles/Cloudinary.js";
 import { Comments } from "../Models/Comments.js";
+import { User } from "../Models/User.js";
 
 // create a new post
 export const CreatePost = async (req, res) => {
@@ -45,6 +46,23 @@ export const GetPosts = async (req, res) => {
   try {
     const user = await Post.find().sort({ createdAt: -1 });
     return res.json({ user });
+  } catch (error) {
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+export const getInteractions = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const post = await Post.findOne({ _id });
+    if (!post) {
+      return res.status(404).json({ message: "Post Not Found" });
+    }
+    const { likes } = post;
+    const usersInterAction = await User.find(
+      { _id: { $in: likes } },
+      { _id: 1, name: 1,surname:1,username:1,imageProfile:1 }
+    );
+    return res.json(usersInterAction);
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
