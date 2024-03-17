@@ -186,27 +186,3 @@ export const DeletePost = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-export const GetPostInterActions = async (req, res) => {
-  try {
-    const _id = req.params.id;
-    const { likes } = await Post.findOne({ _id });
-    if (!likes) {
-      return res.status(404).json({ message: "No post found" });
-    }
-    const usersInterAction = await User.find(
-      { _id: { $in: likes } },
-      {
-        _id: 1,
-        imageProfile: 1,
-        username: 1,
-        name: 1,
-        surname: 1,
-        updatedAt: 1,
-      }
-    );
-
-    return res.status(404).json({ usersInterAction });
-  } catch (error) {
-    return res.status(500).json({ error: `Internal Server Error : ${error}` });
-  }
-};
