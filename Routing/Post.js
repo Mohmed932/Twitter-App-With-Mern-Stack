@@ -3,7 +3,6 @@ import { upload } from "../Utiles/Upload.js";
 import {
   CreatePost,
   DeletePost,
-  GetPostInterActions,
   GetPosts,
   SinglePost,
   ToggleLike,

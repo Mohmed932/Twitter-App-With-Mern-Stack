@@ -1,5 +1,4 @@
 import { Post } from "../Models/Post.js";
-import { User } from "../Models/User.js";
 import fs from "fs";
 import {
   DeletePhotos,

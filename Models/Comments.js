@@ -15,6 +15,14 @@ const CommentsSchema = new Schema({
     type: String,
     required: true,
   },
+  fullname: {
+    type: String,
+    required: true,
+  },
+  imageProfile: {
+    type: String,
+    required: true,
+  },
   text: {
     type: String,
     required: true,

@@ -13,7 +13,8 @@ export const CreateComment = async (req, res) => {
       PostId: postId._id,
       userId: userId._id,
       username: userId.username,
-      imageProfile:userId.imageProfile,
+      fullname:userId.name + ' ' + userId.surname,
+      imageProfile:userId.imageProfile.sourceImage,
       text: req.body.text,
     });
     await Comment.save();
