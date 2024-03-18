@@ -26,7 +26,7 @@ export const CreateComment = async (req, res) => {
 
 export const GetComment = async (req, res) => {
   try {
-    const Comment = await Comments.find({ PostId: req.params.id })
+    const Comment = await Comments.find({ PostId: req.params.id }).sort({ createdAt: -1 });
     if (!Comment) {
       return res
         .status(404)
