@@ -36,14 +36,6 @@ const UserSchema = new Schema(
       type: String,
       default: "",
     },
-    follower: {
-      type: Number,
-      default: 0,
-    },
-    following: {
-      type: Number,
-      default: 0,
-    },
     date_birth: {
       type: String,
       required: true,
@@ -72,14 +64,32 @@ const UserSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    followRequests: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    followers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    following: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
+  { timestamps: true }
 );
 
-UserSchema.virtual("posts", {
-  ref: "Post",
-  foreignField: "author",
-  localField: "_id",
-});
+// UserSchema.virtual("posts", {
+//   ref: "Post",
+//   foreignField: "author",
+//   localField: "_id",
+// });
 
 export const User = model("User", UserSchema);

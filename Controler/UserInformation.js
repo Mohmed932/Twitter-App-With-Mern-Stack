@@ -11,3 +11,47 @@ export const getUsers = async (req, res) => {
     return res.json({ message: `Server Error: ${error}` });
   }
 };
+
+export const SendFollowRequests = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const user = await User.findOneAndUpdate(
+      { _id },
+      { $push: { followRequests: req.user._id } },
+      { new: true }
+    ).select("followRequests");
+    return res.json({ user });
+  } catch (error) {
+    return res.json({ message: `Server Error: ${error}` });
+  }
+};
+export const AcceptFollowRequests = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: req.user._id },
+      { $pull: { followRequests: _id }, $push: { followers: _id } },
+      { new: true, select: "followers" }
+    );
+    await User.findOneAndUpdate(
+      { _id },
+      { $push: { following: req.user._id } },
+      { new: true, select: "following" }
+    );
+    return res.json({ user: updatedUser });
+  } catch (error) {
+    return res.status(500).json({ message: `Server Error: ${error}` });
+  }
+};
+export const GetFollowing = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const allFollowing = await User.findOne(
+      { _id },
+      { new: true, select: "following" }
+    );
+    return res.json({ allFollowing });
+  } catch (error) {
+    return res.status(500).json({ message: `Server Error: ${error}` });
+  }
+};
