@@ -60,8 +60,8 @@ export const DeleteComment = async (req, res) => {
       { _id: Comment.PostId },
       { $inc: { comments: -1 } }
     );
-    await Comments.findByIdAndDelete(Comment._id);
-    return res.json({ message: "deleted successfully" });
+    const Commentinformation = await Comments.findByIdAndDelete(Comment._id);
+    return res.json({ message: "deleted successfully", Commentinformation });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
