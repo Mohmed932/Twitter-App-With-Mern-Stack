@@ -55,3 +55,15 @@ export const GetFollowing = async (req, res) => {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }
 };
+export const GetFollowers = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const allFollowing = await User.findOne(
+      { _id },
+      { new: true, select: "followers" }
+    );
+    return res.json({ allFollowing });
+  } catch (error) {
+    return res.status(500).json({ message: `Server Error: ${error}` });
+  }
+};
