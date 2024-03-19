@@ -127,9 +127,7 @@ export const UserLogin = async (req, res) => {
 
 export const UserProfile = async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.user._id })
-      .select("-password")
-      .populate("posts");
+    const user = await User.findOne({ _id: req.user._id }).select("-password");
     return res.json({ user });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
