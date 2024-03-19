@@ -75,7 +75,7 @@ export const UpdateComment = async (req, res) => {
       $set: {
         text: req.body.text,
       },
-    });
+    },{new: true});
     return res.json({ updateComment });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
