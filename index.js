@@ -6,6 +6,7 @@ import { UserRouter } from "./Routing/User.js";
 import { PostRouter } from "./Routing/Post.js";
 import { CommentRouter } from "./Routing/Comments.js";
 import { errorHandler } from "./Utiles/Error.js";
+import { UserInformation } from "./Routing/UserInFormation.js";
 
 const app = express();
 config();
@@ -16,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(UserRouter);
 app.use(PostRouter);
 app.use(CommentRouter);
+app.use(UserInformation);
 app.use(errorHandler);
 app.get("/", (req, res) => {
   return res.json({ message: "hello in uber" });
