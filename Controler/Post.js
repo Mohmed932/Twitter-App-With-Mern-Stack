@@ -60,7 +60,7 @@ export const getInteractions = async (req, res) => {
     const { likes } = post;
     const usersInterAction = await User.find(
       { _id: { $in: likes } },
-      { _id: 1, name: 1,surname:1,username:1,imageProfile:1 }
+      { _id: 1, name: 1, surname: 1, username: 1, imageProfile: 1 }
     );
     return res.json(usersInterAction);
   } catch (error) {

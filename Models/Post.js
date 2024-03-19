@@ -23,6 +23,10 @@ const PostSchema = new Schema(
     authorimageProfile: {
       type: String,
     },
+    comments: {
+      type: Number,
+      default: 0,
+    },
     postImage: {
       type: Object,
       default: {
@@ -40,9 +44,9 @@ const PostSchema = new Schema(
   { timestamps: true }
 );
 
-PostSchema.virtual("comments", {
-  ref: "Comments",
-  foreignField: "PostId",
-  localField: "_id",
-});
+// PostSchema.virtual("comments", {
+//   ref: "Comments",
+//   foreignField: "PostId",
+//   localField: "_id",
+// });
 export const Post = model("Post", PostSchema);

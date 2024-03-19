@@ -4,7 +4,10 @@ import { User } from "../Models/User.js";
 
 export const CreateComment = async (req, res) => {
   try {
-    const postId = await Post.findById(req.params.id);
+    const postId = await Post.findByIdAndUpdate(
+      { _id: req.params.id },
+      { $inc: { comments: 1 } }
+    );
     if (!postId) {
       return res.status(404).json({ message: "No such post or post deleted" });
     }
@@ -13,8 +16,8 @@ export const CreateComment = async (req, res) => {
       PostId: postId._id,
       userId: userId._id,
       username: userId.username,
-      fullname:userId.name + ' ' + userId.surname,
-      imageProfile:userId.imageProfile.sourceImage,
+      fullname: userId.name + " " + userId.surname,
+      imageProfile: userId.imageProfile.sourceImage,
       text: req.body.text,
     });
     await Comment.save();
@@ -26,7 +29,9 @@ export const CreateComment = async (req, res) => {
 
 export const GetComment = async (req, res) => {
   try {
-    const Comment = await Comments.find({ PostId: req.params.id }).sort({ createdAt: -1 });
+    const Comment = await Comments.find({ PostId: req.params.id }).sort({
+      createdAt: -1,
+    });
     if (!Comment) {
       return res
         .status(404)
@@ -51,6 +56,10 @@ export const DeleteComment = async (req, res) => {
         .status(400)
         .json({ message: "you are not allowed to delete this comment" });
     }
+    await Post.findByIdAndUpdate(
+      { _id: Comment.PostId },
+      { $inc: { comments: -1 } }
+    );
     await Comments.findByIdAndDelete(Comment._id);
     return res.json({ message: "deleted successfully" });
   } catch (error) {
@@ -71,11 +80,15 @@ export const UpdateComment = async (req, res) => {
         .status(400)
         .json({ message: "you are not allowed to delete this comment" });
     }
-    const updateComment = await Comments.findByIdAndUpdate(Comment._id, {
-      $set: {
-        text: req.body.text,
+    const updateComment = await Comments.findByIdAndUpdate(
+      Comment._id,
+      {
+        $set: {
+          text: req.body.text,
+        },
       },
-    },{new: true});
+      { new: true }
+    );
     return res.json({ updateComment });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
