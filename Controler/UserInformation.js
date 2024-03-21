@@ -71,7 +71,8 @@ export const GetFollowing = async (req, res) => {
     const _id = req.params.id;
     const allFollowing = await User.findOne(
       { _id },
-      { new: true, select: "following" }
+      { following: 1 },
+      { new: true }
     );
     return res.json({ allFollowing });
   } catch (error) {
@@ -83,9 +84,10 @@ export const GetFollowers = async (req, res) => {
     const _id = req.params.id;
     const allFollowing = await User.findOne(
       { _id },
-      { new: true, select: "followers" }
+      { followers: 1 },
+      { new: true }
     );
-    return res.json({ allFollowing });
+    return res.json({ Following: allFollowing });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }
