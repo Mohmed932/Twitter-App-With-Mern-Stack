@@ -2,6 +2,8 @@ import { Router } from "express";
 import { verifyToken } from "../Middelware/VerifyToken.js";
 import {
   AcceptFollowRequests,
+  CancelFollowRequests,
+  GetFolloweRequests,
   GetFollowers,
   GetFollowing,
   SendFollowRequests,
@@ -14,7 +16,8 @@ export const UserInformation = Router();
 UserInformation.route("/users").get(verifyToken, getUsers);
 UserInformation.route("/users/Following/:id").get(verifyToken, GetFollowing);
 UserInformation.route("/users/followers/:id").get(verifyToken, GetFollowers);
-UserInformation.route("/users/followRequests/:id").put(
+UserInformation.route("/users/GetFolloweRequests/:id").get(verifyToken, GetFolloweRequests);
+UserInformation.route("/users/sendfollowRequests/:id").put(
   isValid,
   verifyToken,
   SendFollowRequests
@@ -23,4 +26,9 @@ UserInformation.route("/users/AcceptFollowRequest/:id").put(
   isValid,
   verifyToken,
   AcceptFollowRequests
+);
+UserInformation.route("/users/CancelFollowRequests/:id").put(
+  isValid,
+  verifyToken,
+  CancelFollowRequests
 );

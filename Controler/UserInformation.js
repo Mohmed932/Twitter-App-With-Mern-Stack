@@ -43,6 +43,29 @@ export const AcceptFollowRequests = async (req, res) => {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }
 };
+export const CancelFollowRequests = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const CancelFollow = await User.findOneAndUpdate(
+      { _id: req.user._id },
+      { $pull: { followRequests: _id } }
+    );
+    return res.json({ CancelFollow });
+  } catch (error) {
+    return res.status(500).json({ message: `Server Error: ${error}` });
+  }
+};
+export const GetFolloweRequests = async (req, res) => {
+  try {
+    const FolloweRequests = await User.findOne(
+      { _id: req.user._id },
+      { followRequests: 1 }
+    );
+    return res.json({ FolloweRequests });
+  } catch (error) {
+    return res.status(500).json({ message: `Server Error: ${error}` });
+  }
+};
 export const GetFollowing = async (req, res) => {
   try {
     const _id = req.params.id;
