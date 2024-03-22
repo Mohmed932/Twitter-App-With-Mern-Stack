@@ -15,9 +15,21 @@ import { isValid } from "../Middelware/IsValid.js";
 export const UserInformation = Router();
 
 UserInformation.route("/users").get(verifyToken, getUsers);
-UserInformation.route("/users/Following/:id").get(isValid,verifyToken, GetFollowing);
-UserInformation.route("/users/followers/:id").get(isValid,verifyToken, GetFollowers);
-UserInformation.route("/users/GetFolloweRequests/:id").get(isValid,verifyToken, GetFolloweRequests);
+UserInformation.route("/users/Following/:id").get(
+  isValid,
+  verifyToken,
+  GetFollowing
+);
+UserInformation.route("/users/followers/:id").get(
+  isValid,
+  verifyToken,
+  GetFollowers
+);
+UserInformation.route("/users/GetFolloweRequests/:id").get(
+  isValid,
+  verifyToken,
+  GetFolloweRequests
+);
 UserInformation.route("/users/sendfollowRequests/:id").put(
   isValid,
   verifyToken,
