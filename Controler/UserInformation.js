@@ -110,12 +110,17 @@ export const CancelFollow = async (req, res) => {
       return res.json({ message: "you are not allowed to unfollow " });
     }
     // pull _id from following
-    const CancelFollow = await User.findOneAndUpdate(
+     await User.findOneAndUpdate(
       { _id: req.user._id },
       { $pull: { following: _id } }
     );
+    // pull req.user._id from followers
+     await User.findOneAndUpdate(
+      { _id },
+      { $pull: { followers: req.user._id } }
+    );
     await User.findOneAndUpdate({ _id }, { $pull: { followers: _id } });
-    return res.json({ CancelFollow });
+    return res.json({ message:"Your follow request has been cancelled" });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }
