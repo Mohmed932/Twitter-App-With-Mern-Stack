@@ -15,6 +15,25 @@ export const getUsers = async (req, res) => {
 export const SendFollowRequests = async (req, res) => {
   try {
     const _id = req.params.id;
+    const { followRequests, followers } = await User.findOne(
+      { _id },
+      { followRequests: 1, followers: 1 }
+    );
+    // check if the user is already send a follow request
+    const CheckFollowRequests = followRequests.includes(req.user._id);
+    if (CheckFollowRequests) {
+      return res.json({
+        message:
+          "You have already sent a follow-up request. Please wait until it is approved",
+      });
+    }
+    // check if the user is already following a _id 
+    const CheckFollowers = followers.includes(req.user._id);
+    if (CheckFollowers) {
+      return res.json({
+        message: "You are actually following it",
+      });
+    }
     const user = await User.findOneAndUpdate(
       { _id },
       { $push: { followRequests: req.user._id } },
@@ -28,17 +47,30 @@ export const SendFollowRequests = async (req, res) => {
 export const AcceptFollowRequests = async (req, res) => {
   try {
     const _id = req.params.id;
-    const updatedUser = await User.findOneAndUpdate(
+    // check if _id is already sending a follow request
+    const { followRequests } = await User.findOne(
+      { _id: req.user._id },
+      { followRequests: 1 }
+    );
+    const checkfollowRequests = followRequests.includes(_id);
+    if (!checkfollowRequests) {
+      return res.json({ message: "He did not send you a follow request" });
+    }
+    // pull _id from followRequests and push it into followers
+    const AcceptFollowRequests = await User.findOneAndUpdate(
       { _id: req.user._id },
       { $pull: { followRequests: _id }, $push: { followers: _id } },
-      { new: true, select: "followers" }
+      { followers: 1 },
+      { new: true }
     );
+    // push _id into followers
     await User.findOneAndUpdate(
       { _id },
       { $push: { following: req.user._id } },
-      { new: true, select: "following" }
+      { following: 1 },
+      { new: true }
     );
-    return res.json({ user: updatedUser });
+    return res.json({ AcceptFollowRequests });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }
@@ -46,10 +78,43 @@ export const AcceptFollowRequests = async (req, res) => {
 export const CancelFollowRequests = async (req, res) => {
   try {
     const _id = req.params.id;
-    const CancelFollow = await User.findOneAndUpdate(
+    // check if _id is already sending a follow request
+    const { followRequests } = await User.findOne(
+      { _id: req.user._id },
+      { followRequests: 1 }
+    );
+    const checkfollowRequests = followRequests.includes(_id);
+    if (!checkfollowRequests) {
+      return res.json({ message: "He did not send you a follow request" });
+    }
+    // pull _id from followRequests
+    const CancelFollowRequests = await User.findOneAndUpdate(
       { _id: req.user._id },
       { $pull: { followRequests: _id } }
     );
+    return res.json({ CancelFollowRequests });
+  } catch (error) {
+    return res.status(500).json({ message: `Server Error: ${error}` });
+  }
+};
+export const CancelFollow = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    // check if _id is already in the following
+    const { following } = await User.findOne(
+      { _id: req.user._id },
+      { following: 1 }
+    );
+    const Checkfollow = following.includes(_id);
+    if (!Checkfollow) {
+      return res.json({ message: "you are not allowed to unfollow " });
+    }
+    // pull _id from following
+    const CancelFollow = await User.findOneAndUpdate(
+      { _id: req.user._id },
+      { $pull: { following: _id } }
+    );
+    await User.findOneAndUpdate({ _id }, { $pull: { followers: _id } });
     return res.json({ CancelFollow });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });
