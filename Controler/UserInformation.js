@@ -6,7 +6,18 @@ export const getUsers = async (req, res) => {
       {},
       { _id: 1, username: 1, name: 1, surname: 1, follower: 1, imageProfile: 1 }
     ).limit(10);
-    return res.json({ users });
+    const { following } = await User.find(
+      { _id: req.user._id },
+      { following: 1 }
+    );
+    const all = users.filter((user) => {
+      return (
+        user._id.toString() !== req.user._id &&
+        following.filter((id) => user._id.toString() !== id)
+      );
+    });
+
+    return res.json({ users: all });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
   }
@@ -27,19 +38,20 @@ export const SendFollowRequests = async (req, res) => {
           "You have already sent a follow-up request. Please wait until it is approved",
       });
     }
-    // check if the user is already following a _id 
+    // check if the user is already following a _id
     const CheckFollowers = followers.includes(req.user._id);
     if (CheckFollowers) {
       return res.json({
         message: "You are actually following it",
       });
     }
-    const user = await User.findOneAndUpdate(
+    await User.findOneAndUpdate(
       { _id },
       { $push: { followRequests: req.user._id } },
+      { followRequests: 1 },
       { new: true }
-    ).select("followRequests");
-    return res.json({ user });
+    );
+    return res.json({ message: "You are now send follow" });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
   }
@@ -110,17 +122,17 @@ export const CancelFollow = async (req, res) => {
       return res.json({ message: "you are not allowed to unfollow " });
     }
     // pull _id from following
-     await User.findOneAndUpdate(
+    await User.findOneAndUpdate(
       { _id: req.user._id },
       { $pull: { following: _id } }
     );
     // pull req.user._id from followers
-     await User.findOneAndUpdate(
+    await User.findOneAndUpdate(
       { _id },
       { $pull: { followers: req.user._id } }
     );
     await User.findOneAndUpdate({ _id }, { $pull: { followers: _id } });
-    return res.json({ message:"Your follow request has been cancelled" });
+    return res.json({ message: "Your follow request has been cancelled" });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }
