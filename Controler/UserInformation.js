@@ -4,19 +4,20 @@ export const getUsers = async (req, res) => {
   try {
     const users = await User.find(
       {},
-      { _id: 1, username: 1, name: 1, surname: 1, follower: 1, imageProfile: 1 }
+      { _id: 1, username: 1, name: 1, surname: 1, imageProfile: 1 }
     ).limit(10);
-    const { following } = await User.find(
+
+    const following = await User.find(
       { _id: req.user._id },
-      { following: 1 }
+      { following: 1, _id: 0 } // إزالة حقل _id من نتيجة الاستعلام
     );
+    console.log(following);
     const all = users.filter((user) => {
       return (
-        user._id.toString() !== req.user._id &&
-        following.filter((id) => user._id.toString() !== id)
+        user._id.toString() !== req.user._id.toString() && // تحويل القيم إلى سلسلة نصية للمقارنة
+        following?.filter((id) => user._id.toString() !== id.toString())
       );
     });
-
     return res.json({ users: all });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
@@ -97,7 +98,7 @@ export const CancelFollowRequests = async (req, res) => {
     );
     const checkfollowRequests = followRequests.includes(_id);
     if (!checkfollowRequests) {
-      return res.json({ message: "He did not send you a follow request" });
+      return res.json({ message: "He didn't send you a follow request" });
     }
     // pull _id from followRequests
     const CancelFollowRequests = await User.findOneAndUpdate(
@@ -139,15 +140,25 @@ export const CancelFollow = async (req, res) => {
 };
 export const GetFolloweRequests = async (req, res) => {
   try {
-    const FolloweRequests = await User.findOne(
+    const { followRequests } = await User.findOne(
       { _id: req.user._id },
-      { followRequests: 1 }
+      { followRequests: 1, _id: 0 }
     );
-    return res.json({ FolloweRequests });
+
+    // تحويل قيمة followRequests إلى مصفوفة من معرفات الأشخاص
+    const userIds = followRequests.map((request) => request.toString());
+
+    const users = await User.find(
+      { _id: { $in: userIds } },
+      { username: 1, name: 1, surname: 1, imageProfile: 1 }
+    );
+
+    return res.json({ users });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }
 };
+
 export const GetFollowing = async (req, res) => {
   try {
     const _id = req.params.id;

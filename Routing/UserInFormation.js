@@ -25,8 +25,7 @@ UserInformation.route("/users/followers/:id").get(
   verifyToken,
   GetFollowers
 );
-UserInformation.route("/users/GetFolloweRequests/:id").get(
-  isValid,
+UserInformation.route("/users/GetFolloweRequests").get(
   verifyToken,
   GetFolloweRequests
 );
