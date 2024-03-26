@@ -70,6 +70,12 @@ const UserSchema = new Schema(
         ref: "User",
       },
     ],
+    allFollowRequestsISend: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     followers: [
       {
         type: Schema.Types.ObjectId,
