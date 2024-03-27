@@ -8,6 +8,7 @@ import {
   GetFollowers,
   GetFollowing,
   SendFollowRequests,
+  UnFollowRequests,
   getUsers,
 } from "../Controler/UserInformation.js";
 import { isValid } from "../Middelware/IsValid.js";
@@ -48,4 +49,9 @@ UserInformation.route("/users/CancelFollowRequests/:id").put(
   isValid,
   verifyToken,
   CancelFollowRequests
+);
+UserInformation.route("/users/UnFollowRequests/:id").put(
+  isValid,
+  verifyToken,
+  UnFollowRequests
 );

@@ -7,22 +7,38 @@ export const getUsers = async (req, res) => {
       { _id: 1, username: 1, name: 1, surname: 1, imageProfile: 1 }
     ).limit(10);
 
-    const { allFollowRequestsISend } = await User.findOne(
+    const { allFollowRequestsISend, following } = await User.findOne(
       { _id: req.user._id },
-      { allFollowRequestsISend: 1, _id: 0 } // إزالة حقل _id من نتيجة الاستعلام
+      { allFollowRequestsISend: 1, following: 1, _id: 0 }
     );
-    const all = users.map(({ _doc }) => {
-      const updatedUser = {
-        ..._doc, // نسخ كل خصائص العنصر الحالي
-        follow: false, // إضافة الخاصية الجديدة وتعيين قيمتها الافتراضية
-      };
-      // const op = updatedUser.user._id.toString() !== req.user._id.toString();
-      return updatedUser;
+
+    const filteredFriendsSuggest = users.filter(
+      (user) => user._id.toString() !== req.user._id.toString()
+    );
+
+    const all = filteredFriendsSuggest.map((user) => {
+      user._doc.follow = false;
+      allFollowRequestsISend.forEach((user_id) => {
+        if (user._id.toString() === user_id._id.toString()) {
+          user._doc.follow = true;
+        }
+      });
+      return user;
     });
 
-    return res.json({ users: all });
+    const filteredAll = all.filter((i) => {
+      let isFollowing = false;
+      following.forEach((id) => {
+        if (i._id.toString() === id._id.toString()) {
+          isFollowing = true;
+        }
+      });
+      return !isFollowing;
+    });
+
+    return res.json({ users: filteredAll });
   } catch (error) {
-    return res.json({ message: `Server Error: ${error}` });
+    return res.status(500).json({ message: `Server Error: ${error.message}` });
   }
 };
 
@@ -48,14 +64,12 @@ export const SendFollowRequests = async (req, res) => {
         message: "You are actually following it",
       });
     }
-    await User.findOneAndUpdate(
-      { _id: req.user._id },
-      { $push: { allFollowRequestsISend: _id } }
-    );
-    await User.findOneAndUpdate(
-      { _id },
+    await User.findByIdAndUpdate(req.user._id, {
+      $push: { allFollowRequestsISend: _id },
+    });
+    await User.findByIdAndUpdate(
+      _id,
       { $push: { followRequests: req.user._id } },
-      { followRequests: 1 },
       { new: true }
     );
     return res.json({ message: "You are now send follow" });
@@ -83,14 +97,11 @@ export const AcceptFollowRequests = async (req, res) => {
       { new: true }
     );
     await User.findOneAndUpdate(
-      { _id: req.user._id },
-      { $pull: { allFollowRequestsISend: _id } }
-    );
-    // push _id into followers
-    await User.findOneAndUpdate(
       { _id },
-      { $push: { following: req.user._id } },
-      { following: 1 },
+      {
+        $push: { following: req.user._id },
+        $pull: { allFollowRequestsISend: req.user._id },
+      },
       { new: true }
     );
     return res.json({ AcceptFollowRequests });
@@ -98,10 +109,35 @@ export const AcceptFollowRequests = async (req, res) => {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }
 };
+export const UnFollowRequests = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    // check if _id is already sending a follow request
+    const { allFollowRequestsISend } = await User.findOne(
+      { _id: req.user._id },
+      { allFollowRequestsISend: 1 }
+    );
+    const checkallFollowRequestsISend = allFollowRequestsISend.includes(_id);
+    if (!checkallFollowRequestsISend) {
+      return res.json({ message: "He didn't send you a follow request" });
+    }
+    await User.findOneAndUpdate(
+      { _id },
+      { $pull: { followRequests: req.user._id } }
+    );
+    // pull _id from followRequests
+    const UnFollowRequests = await User.findOneAndUpdate(
+      { _id: req.user._id },
+      { $pull: { allFollowRequestsISend: _id } }
+    );
+    return res.json({ UnFollowRequests });
+  } catch (error) {
+    return res.status(500).json({ message: `Server Error: ${error}` });
+  }
+};
 export const CancelFollowRequests = async (req, res) => {
   try {
     const _id = req.params.id;
-    console.log(_id);
     // check if _id is already sending a follow request
     const { followRequests } = await User.findOne(
       { _id: req.user._id },
@@ -112,8 +148,8 @@ export const CancelFollowRequests = async (req, res) => {
       return res.json({ message: "He didn't send you a follow request" });
     }
     await User.findOneAndUpdate(
-      { _id: req.user._id },
-      { $pull: { allFollowRequestsISend: _id } }
+      { _id },
+      { $pull: { allFollowRequestsISend: req.user._id } }
     );
     // pull _id from followRequests
     const CancelFollowRequests = await User.findOneAndUpdate(
