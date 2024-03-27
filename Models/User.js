@@ -82,12 +82,20 @@ const UserSchema = new Schema(
         ref: "User",
       },
     ],
+    followersCount: {
+      type: Number,
+      default: 0,
+    },
     following: [
       {
         type: Schema.Types.ObjectId,
         ref: "User",
       },
     ],
+    followingCount: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

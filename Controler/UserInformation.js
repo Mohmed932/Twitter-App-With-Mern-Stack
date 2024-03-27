@@ -92,7 +92,11 @@ export const AcceptFollowRequests = async (req, res) => {
     // pull _id from followRequests and push it into followers
     const AcceptFollowRequests = await User.findOneAndUpdate(
       { _id: req.user._id },
-      { $pull: { followRequests: _id }, $push: { followers: _id } },
+      {
+        $pull: { followRequests: _id },
+        $push: { followers: _id },
+        $inc: { followersCount: 1 },
+      },
       { followers: 1 },
       { new: true }
     );
@@ -101,6 +105,7 @@ export const AcceptFollowRequests = async (req, res) => {
       {
         $push: { following: req.user._id },
         $pull: { allFollowRequestsISend: req.user._id },
+        $inc: { followingCount: 1 },
       },
       { new: true }
     );
