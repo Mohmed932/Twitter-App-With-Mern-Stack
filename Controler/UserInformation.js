@@ -241,3 +241,26 @@ export const GetFollowers = async (req, res) => {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }
 };
+export const UserProfile = async (req, res) => {
+  try {
+    const username = req.params.username;
+    const Profile = await User.findOne(
+      { username },
+      {
+        username: 1,
+        name: 1,
+        surname: 1,
+        bio: 1,
+        date_birth: 1,
+        imageProfile: 1,
+        imageCover: 1,
+        followersCount: 1,
+        followingCount: 1,
+      },
+      { new: true }
+    );
+    return res.json({ Profile });
+  } catch (error) {
+    return res.status(500).json({ message: `Server Error: ${error}` });
+  }
+};
