@@ -96,6 +96,12 @@ const UserSchema = new Schema(
       type: Number,
       default: 0,
     },
+    postSaved: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Post",
+      },
+    ],
   },
   { timestamps: true }
 );

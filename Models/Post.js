@@ -34,6 +34,9 @@ const PostSchema = new Schema(
         imageId: null,
       },
     },
+    isSaved:{
+      type: Boolean,
+    },
     likes: [
       {
         type: Schema.Types.ObjectId,

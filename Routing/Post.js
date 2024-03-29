@@ -3,9 +3,12 @@ import { upload } from "../Utiles/Upload.js";
 import {
   CreatePost,
   DeletePost,
+  GetPostSaved,
   GetPosts,
+  GetPostsprofile,
   SinglePost,
   ToggleLike,
+  ToggleSavePost,
   UpdatePost,
   getInteractions,
 } from "../Controler/Post.js";
@@ -19,7 +22,9 @@ PostRouter.route("/createpost").post(
   upload.single("image"),
   CreatePost
 );
-PostRouter.route("/posts").get(GetPosts);
+PostRouter.route("/posts").get(verifyToken,GetPosts);
+PostRouter.route("/posts/porfile").get(verifyToken,GetPostsprofile);
+PostRouter.route("/posts/postsaved").get(verifyToken,GetPostSaved);
 PostRouter.route("/posts/:id")
   .get(isValid, SinglePost)
   .put(isValid, verifyToken, upload.single("image"), UpdatePost)
@@ -27,3 +32,4 @@ PostRouter.route("/posts/:id")
   
 PostRouter.route("/post/Interactions/:id").get(isValid, verifyToken,getInteractions);
 PostRouter.route("/post/likes/:id").put(isValid, verifyToken, ToggleLike);
+PostRouter.route("/post/ToggleSavePost/:id").put(isValid, verifyToken, ToggleSavePost);

@@ -44,12 +44,76 @@ export const CreatePost = async (req, res) => {
 // get all the posts
 export const GetPosts = async (req, res) => {
   try {
-    const user = await Post.find().sort({ createdAt: -1 });
-    return res.json({ user });
+    const userPostSaved = await User.findOne({ _id: req.user._id });
+    const posts = await Post.find().sort({ createdAt: -1 }).limit(10);
+
+    if (!userPostSaved || !posts) {
+      return res.status(404).json({ message: "User or Posts Not Found" });
+    }
+
+    posts.forEach((post) => {
+      const isSaved = userPostSaved.postSaved.includes(post._id);
+      post.isSaved = isSaved;
+    });
+    return res.json({ posts });
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ error: error.message || "Internal Server Error" });
   }
 };
+// get all the posts for user profile
+export const GetPostsprofile = async (req, res) => {
+  try {
+    const userPostSaved = await User.findOne({ _id: req.user._id });
+    const posts = await Post.find({ author: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    if (!userPostSaved || !posts) {
+      return res.status(404).json({ message: "User or Posts Not Found" });
+    }
+
+    posts.forEach((post) => {
+      const isSaved = userPostSaved.postSaved.includes(post._id);
+      post.isSaved = isSaved;
+    });
+    return res.json({ posts });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: error.message || "Internal Server Error" });
+  }
+};
+// get all the posts user saved
+export const GetPostSaved = async (req, res) => {
+  try {
+    const userPostSaved = await User.findOne(
+      { _id: req.user._id },
+      { postSaved: 1, _id: 0 }
+    );
+    if (!userPostSaved) {
+      return res.status(404).json({ message: "User or Posts Not Found" });
+    }
+
+    // استخدم map بدلاً من forEach لتحويل قيم postSaved إلى أسلوب String
+    const PostsSaved = userPostSaved.postSaved.map((i) => i.toString());
+
+    // استخدم قيمة PostsSaved في استعلام find
+    const posts = await Post.find({ _id: { $in: PostsSaved } })
+      .sort({ createdAt: -1 })
+      .limit(10);
+    posts.forEach((post) => {
+      post.isSaved = true;
+    });
+    return res.json({ posts });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: error.message || "Internal Server Error" });
+  }
+};
+
 export const getInteractions = async (req, res) => {
   try {
     const _id = req.params.id;
@@ -180,6 +244,32 @@ export const DeletePost = async (req, res) => {
       return res.status(400).json({
         message: "you are not allowed to remove this post",
       });
+    }
+  } catch (error) {
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const ToggleSavePost = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(404).json({ message: "user Not Found" });
+    }
+    const isSaved = user.postSaved.includes(_id);
+    if (isSaved) {
+      await User.findOneAndUpdate(
+        { _id: req.user._id },
+        { $pull: { postSaved: _id } }
+      );
+      return res.json({ message: "Removed successfully" });
+    } else {
+      await User.findOneAndUpdate(
+        { _id: req.user._id },
+        { $push: { postSaved: _id } }
+      );
+      return res.json({ message: "Saved successfully" });
     }
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
