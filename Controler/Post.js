@@ -103,9 +103,9 @@ export const GetPostSaved = async (req, res) => {
     const posts = await Post.find({ _id: { $in: PostsSaved } })
       .sort({ createdAt: -1 })
       .limit(10);
-    posts.forEach((post) => {
-      post.isSaved = true;
-    });
+    // posts.forEach((post) => {
+    //   post.isSaved = true;
+    // });
     return res.json({ posts });
   } catch (error) {
     return res

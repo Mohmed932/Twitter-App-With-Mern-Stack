@@ -181,12 +181,12 @@ export const CancelFollow = async (req, res) => {
     // pull _id from following
     await User.findOneAndUpdate(
       { _id: req.user._id },
-      { $pull: { following: _id } }
+      { $pull: { following: _id }, $inc: { followingCount: -1 } }
     );
     // pull req.user._id from followers
     await User.findOneAndUpdate(
       { _id },
-      { $pull: { followers: req.user._id } }
+      { $pull: { followers: req.user._id }, $inc: { followersCount: -1 } }
     );
     await User.findOneAndUpdate({ _id }, { $pull: { followers: _id } });
     return res.json({ message: "Your follow request has been cancelled" });
@@ -217,26 +217,36 @@ export const GetFolloweRequests = async (req, res) => {
 
 export const GetFollowing = async (req, res) => {
   try {
-    const _id = req.params.id;
-    const allFollowing = await User.findOne(
-      { _id },
+    const username = req.params.username;
+    const user = await User.findOne(
+      { username },
       { following: 1 },
       { new: true }
     );
-    return res.json({ allFollowing });
+    const usersFollowing = user.following.map((i) => i.toString());
+    const Following = await User.find(
+      { _id: { $in: usersFollowing } },
+      { username: 1, name: 1, surname: 1, imageProfile: 1 }
+    );
+    return res.json({ Following });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }
 };
 export const GetFollowers = async (req, res) => {
   try {
-    const _id = req.params.id;
-    const allFollowing = await User.findOne(
-      { _id },
+    const username = req.params.username;
+    const user = await User.findOne(
+      { username },
       { followers: 1 },
       { new: true }
     );
-    return res.json({ Following: allFollowing });
+    const usersFollowers = user.followers.map((i) => i.toString());
+    const Followers = await User.find(
+      { _id: { $in: usersFollowers } },
+      { username: 1, name: 1, surname: 1, imageProfile: 1 }
+    );
+    return res.json({ Followers });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }

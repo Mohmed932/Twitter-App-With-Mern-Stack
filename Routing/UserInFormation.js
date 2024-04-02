@@ -17,13 +17,11 @@ import { isValid } from "../Middelware/IsValid.js";
 export const UserInformation = Router();
 
 UserInformation.route("/users").get(verifyToken, getUsers);
-UserInformation.route("/users/Following/:id").get(
-  isValid,
+UserInformation.route("/users/Following/:username").get(
   verifyToken,
   GetFollowing
 );
-UserInformation.route("/users/followers/:id").get(
-  isValid,
+UserInformation.route("/users/followers/:username").get(
   verifyToken,
   GetFollowers
 );
