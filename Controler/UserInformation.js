@@ -238,14 +238,28 @@ export const GetFollowers = async (req, res) => {
     const username = req.params.username;
     const user = await User.findOne(
       { username },
-      { followers: 1 },
+      { followers: 1, following: 1 },
       { new: true }
     );
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     const usersFollowers = user.followers.map((i) => i.toString());
     const Followers = await User.find(
       { _id: { $in: usersFollowers } },
       { username: 1, name: 1, surname: 1, imageProfile: 1 }
     );
+    const me = await User.findOne(
+      { _id: req.user._id },
+      { followers: 1, following: 1, allFollowRequestsISend: 1 },
+      { new: true }
+    );
+    Followers.map((i) => {
+      const isfollowing = me.following.includes(i._id);
+      const Requested = me.allFollowRequestsISend.includes(i._id);
+      i._doc.isFollowing = isfollowing;
+      i._doc.Requested = Requested;
+    });
     return res.json({ Followers });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });
