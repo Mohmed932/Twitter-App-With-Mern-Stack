@@ -188,7 +188,34 @@ export const CancelFollow = async (req, res) => {
       { _id },
       { $pull: { followers: req.user._id }, $inc: { followersCount: -1 } }
     );
-    await User.findOneAndUpdate({ _id }, { $pull: { followers: _id } });
+    return res.json({ message: "You no longer follow this user" });
+  } catch (error) {
+    return res.status(500).json({ message: `Server Error: ${error}` });
+  }
+};
+export const CancelFollowers = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    // check if _id is already in the following
+    const { followers } = await User.findOne(
+      { _id: req.user._id },
+      { followers: 1 }
+    );
+    const Checkfollow = followers.includes(_id);
+    if (!Checkfollow) {
+      return res.json({ message: "you are not allowed to unfollow " });
+    }
+    // pull _id from followers
+    await User.findOneAndUpdate(
+      { _id: req.user._id },
+      { $pull: { followers: _id }, $inc: { followersCount: -1 } }
+    );
+    // pull req.user._id from followers
+    await User.findOneAndUpdate(
+      { _id },
+      { $pull: { following: req.user._id }, $inc: { followingCount: -1 } }
+    );
+    // await User.findOneAndUpdate({ _id }, { $pull: { followers: _id } });
     return res.json({ message: "You no longer follow this user" });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });

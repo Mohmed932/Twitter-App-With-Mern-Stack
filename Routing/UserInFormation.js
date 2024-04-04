@@ -4,6 +4,7 @@ import {
   AcceptFollowRequests,
   CancelFollow,
   CancelFollowRequests,
+  CancelFollowers,
   GetFolloweRequests,
   GetFollowers,
   GetFollowing,
@@ -43,6 +44,11 @@ UserInformation.route("/users/CancelFollow/:id").put(
   isValid,
   verifyToken,
   CancelFollow
+);
+UserInformation.route("/users/CancelFollowers/:id").put(
+  isValid,
+  verifyToken,
+  CancelFollowers
 );
 UserInformation.route("/users/CancelFollowRequests/:id").put(
   isValid,
