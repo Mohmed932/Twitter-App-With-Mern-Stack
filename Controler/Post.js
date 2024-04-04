@@ -126,6 +126,17 @@ export const getInteractions = async (req, res) => {
       { _id: { $in: likes } },
       { _id: 1, name: 1, surname: 1, username: 1, imageProfile: 1 }
     );
+    const me = await User.findOne(
+      { _id: req.user._id },
+      { following: 1, allFollowRequestsISend: 1 },
+      { new: true }
+    );
+    usersInterAction.map((i) => {
+      const isfollowing = me.following.includes(i._id);
+      const Requested = me.allFollowRequestsISend.includes(i._id);
+      i._doc.isFollowing = isfollowing;
+      i._doc.Requested = Requested;
+    });
     return res.json(usersInterAction);
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });

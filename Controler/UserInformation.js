@@ -189,7 +189,7 @@ export const CancelFollow = async (req, res) => {
       { $pull: { followers: req.user._id }, $inc: { followersCount: -1 } }
     );
     await User.findOneAndUpdate({ _id }, { $pull: { followers: _id } });
-    return res.json({ message: "Your follow request has been cancelled" });
+    return res.json({ message: "You no longer follow this user" });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });
   }
@@ -228,6 +228,17 @@ export const GetFollowing = async (req, res) => {
       { _id: { $in: usersFollowing } },
       { username: 1, name: 1, surname: 1, imageProfile: 1 }
     );
+    const me = await User.findOne(
+      { _id: req.user._id },
+      { following: 1, allFollowRequestsISend: 1 },
+      { new: true }
+    );
+    Following.map((i) => {
+      const isfollowing = me.following.includes(i._id);
+      const Requested = me.allFollowRequestsISend.includes(i._id);
+      i._doc.isFollowing = isfollowing;
+      i._doc.Requested = Requested;
+    });
     return res.json({ Following });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });
@@ -251,7 +262,7 @@ export const GetFollowers = async (req, res) => {
     );
     const me = await User.findOne(
       { _id: req.user._id },
-      { followers: 1, following: 1, allFollowRequestsISend: 1 },
+      { following: 1, allFollowRequestsISend: 1 },
       { new: true }
     );
     Followers.map((i) => {
