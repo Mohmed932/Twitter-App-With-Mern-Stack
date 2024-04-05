@@ -127,7 +127,17 @@ export const UserLogin = async (req, res) => {
 
 export const UserProfile = async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.user._id }).select("-password");
+    const user = await User.findOne(
+      { _id: req.user._id },
+      {
+        postSaved: 0,
+        following: 0,
+        followers: 0,
+        password: 0,
+        followRequests: 0,
+        allFollowRequestsISend: 0,
+      }
+    );
     return res.json({ user });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
@@ -135,35 +145,48 @@ export const UserProfile = async (req, res) => {
 };
 export const UpdateProfileInformation = async (req, res) => {
   try {
-    const update = await User.findOneAndUpdate(
+    const user = await User.findOneAndUpdate(
       { username: req.user.username },
       {
         $set: {
+          name: req.body.name,
+          surname: req.body.surname,
           gender: req.body.gender,
           bio: req.body.bio,
           date_birth: req.body.date_birth,
         },
       },
-      { new: true }
-    ).select("-password");
+      {
+        projection: {
+          postSaved: 0,
+          following: 0,
+          followers: 0,
+          password: 0,
+          followRequests: 0,
+          allFollowRequestsISend: 0,
+        },
+        new: true,
+      }
+    );
+
     if (req.body.password) {
       const Salt = await bcrypt.genSalt(10);
       const hash = await bcrypt.hash(req.body.password, Salt);
-      update.password = hash;
-      await update.save();
-      return res.json({ update, message: "password updated successfully" });
+      user.password = hash;
+      await user.save();
+      return res.json({ user, message: "password updated successfully" });
     }
     if (req.body.username) {
       const username = await User.find({ username: req.body.username });
       if (username.length === 0) {
-        update.username = req.body.username;
-        await update.save();
-        return res.json({ update, message: "username updated successfully" });
+        user.username = req.body.username;
+        await user.save();
+        return res.json({ user, message: "username userd successfully" });
       } else {
-        return res.json({ update, message: "username already exists" });
+        return res.json({ user, message: "username already exists" });
       }
     }
-    return res.json({ update });
+    return res.json({ user, message: "profile Updated successfully" });
   } catch (error) {
     return res.status(500).json({ error: `Internal Server Error ${error}` });
   }
