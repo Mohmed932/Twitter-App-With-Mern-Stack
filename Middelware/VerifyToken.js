@@ -5,6 +5,7 @@ export const verifyToken = async (req, res, next) => {
   try {
     const decodeed = await jwt.verify(token, process.env.SCRECT_KEY);
     req.user = decodeed;
+    // console.log();
     next();
   } catch (error) {
     return res

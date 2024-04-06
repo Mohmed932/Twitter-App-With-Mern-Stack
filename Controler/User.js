@@ -149,11 +149,11 @@ export const UpdateProfileInformation = async (req, res) => {
       { username: req.user.username },
       {
         $set: {
-          name: req.body.name,
-          surname: req.body.surname,
-          gender: req.body.gender,
-          bio: req.body.bio,
-          date_birth: req.body.date_birth,
+          name: req.body.name || "",
+          surname: req.body.surname || "",
+          gender: req.body.gender || "",
+          bio: req.body.bio || "",
+          date_birth: req.body.date_birth || "",
         },
       },
       {
@@ -169,25 +169,38 @@ export const UpdateProfileInformation = async (req, res) => {
       }
     );
 
-    if (req.body.password) {
-      const Salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash(req.body.password, Salt);
-      user.password = hash;
-      await user.save();
-      return res.json({ user, message: "password updated successfully" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-    if (req.body.username) {
-      const username = await User.find({ username: req.body.username });
-      if (username.length === 0) {
-        user.username = req.body.username;
-        await user.save();
-        return res.json({ user, message: "username userd successfully" });
-      } else {
-        return res.json({ user, message: "username already exists" });
-      }
-    }
-    return res.json({ user, message: "profile Updated successfully" });
+    return res.json({ user, message: "Profile updated successfully" });
   } catch (error) {
+    return res.status(500).json({ error: `Internal Server Error ${error}` });
+  }
+};
+export const Update_Password = async (req, res) => {
+  try {
+    const user = await User.findOne(
+      { username: req.user.username },
+      {
+        postSaved: 0,
+        following: 0,
+        followers: 0,
+        password: 0,
+        followRequests: 0,
+        allFollowRequestsISend: 0,
+        // new: true,
+      }
+    );
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(req.body.password, salt);
+    user.password = hash;
+    await user.save();
+    return res.json({ user, message: "Password updated successfully" });
+  } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: `Internal Server Error ${error}` });
   }
 };
@@ -199,8 +212,16 @@ export const UpdateUserImageProfile = async (req, res) => {
     }
     // upload photo to cloudinary server
     const result = await Uploadimage(`images/${req.file.filename}`);
-    const user = await User.findOne({ username: req.user.username }).select(
-      "-password"
+    const user = await User.findOne(
+      { username: req.user.username },
+      {
+        postSaved: 0,
+        following: 0,
+        followers: 0,
+        password: 0,
+        followRequests: 0,
+        allFollowRequestsISend: 0,
+      }
     );
     if (user.imageProfile.imageId !== null) {
       await Deleteimage(user.imageProfile.imageId);
@@ -226,8 +247,16 @@ export const UpdateUserImageCover = async (req, res) => {
     }
     // upload photo to cloudinary server
     const result = await Uploadimage(`images/${req.file.filename}`);
-    const user = await User.findOne({ username: req.user.username }).select(
-      "-password"
+    const user = await User.findOne(
+      { username: req.user.username },
+      {
+        postSaved: 0,
+        following: 0,
+        followers: 0,
+        password: 0,
+        followRequests: 0,
+        allFollowRequestsISend: 0,
+      }
     );
     if (user.imageCover.imageId !== null) {
       await Deleteimage(user.imageCover.imageId);
@@ -372,6 +401,18 @@ export const ResetPassword = async (req, res) => {
     await user.save();
     await Veryfation.deleteMany({ userId: user._id });
     return res.json({ message: "password updated" });
+  } catch (error) {
+    return res.json({ message: `Server Error: ${error}` });
+  }
+};
+
+export const StatusOfUser = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const user = await User.findOne({ _id: req.user._id });
+    const isFollowing = user.following.includes(_id);
+    const Requested = user.allFollowRequestsISend.includes(_id);
+    return res.json({ isFollowing, Requested });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
   }

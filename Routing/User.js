@@ -5,9 +5,12 @@ import {
   DeleteUserProfile,
   ResetPassword,
   SendEmailToResetPassword,
+  StatusOfUser,
+  // UpdatePassword,
   UpdateProfileInformation,
   UpdateUserImageCover,
   UpdateUserImageProfile,
+  Update_Password,
   UserLogin,
   UserProfile,
   UserSignUp,
@@ -60,3 +63,8 @@ UserRouter.route("/send_email_to_reset_password").post(
 UserRouter.route("/reset_password/:id/confirm_token/:token")
   .get(isValid, CheckLinkforResetPassword)
   .put(isValid, ResetPassword);
+//Update password
+UserRouter.route("/Update_password").put(verifyToken, Update_Password);
+
+// check user if i follow or he in follow waiting for me
+UserRouter.route("/StatusOfUser/:id").get(verifyToken, StatusOfUser);

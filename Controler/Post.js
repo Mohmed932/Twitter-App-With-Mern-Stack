@@ -65,8 +65,9 @@ export const GetPosts = async (req, res) => {
 // get all the posts for user profile
 export const GetPostsprofile = async (req, res) => {
   try {
-    const userPostSaved = await User.findOne({ _id: req.user._id });
-    const posts = await Post.find({ author: req.user._id })
+    const _id = req.params.id;
+    const userPostSaved = await User.findOne({ _id });
+    const posts = await Post.find({ author: _id })
       .sort({ createdAt: -1 })
       .limit(10);
 
@@ -88,10 +89,8 @@ export const GetPostsprofile = async (req, res) => {
 // get all the posts user saved
 export const GetPostSaved = async (req, res) => {
   try {
-    const userPostSaved = await User.findOne(
-      { _id: req.user._id },
-      { postSaved: 1, _id: 0 }
-    );
+    const _id = req.params.id;
+    const userPostSaved = await User.findOne({ _id }, { postSaved: 1, _id: 0 });
     if (!userPostSaved) {
       return res.status(404).json({ message: "User or Posts Not Found" });
     }
@@ -103,9 +102,6 @@ export const GetPostSaved = async (req, res) => {
     const posts = await Post.find({ _id: { $in: PostsSaved } })
       .sort({ createdAt: -1 })
       .limit(10);
-    // posts.forEach((post) => {
-    //   post.isSaved = true;
-    // });
     return res.json({ posts });
   } catch (error) {
     return res

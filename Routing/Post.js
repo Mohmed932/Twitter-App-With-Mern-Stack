@@ -22,14 +22,30 @@ PostRouter.route("/createpost").post(
   upload.single("image"),
   CreatePost
 );
-PostRouter.route("/posts").get(verifyToken,GetPosts);
-PostRouter.route("/posts/porfile").get(verifyToken,GetPostsprofile);
-PostRouter.route("/posts/postsaved").get(verifyToken,GetPostSaved);
+PostRouter.route("/posts").get(verifyToken, GetPosts);
+PostRouter.route("/posts/porfile/:id").get(
+  isValid,
+  verifyToken,
+  GetPostsprofile
+);
+PostRouter.route("/posts/postsaved/:id").get(
+  isValid,
+  verifyToken,
+  GetPostSaved
+);
 PostRouter.route("/posts/:id")
   .get(isValid, SinglePost)
   .put(isValid, verifyToken, upload.single("image"), UpdatePost)
   .delete(isValid, verifyToken, DeletePost);
-  
-PostRouter.route("/post/Interactions/:id").get(isValid, verifyToken,getInteractions);
+
+PostRouter.route("/post/Interactions/:id").get(
+  isValid,
+  verifyToken,
+  getInteractions
+);
 PostRouter.route("/post/likes/:id").put(isValid, verifyToken, ToggleLike);
-PostRouter.route("/post/ToggleSavePost/:id").put(isValid, verifyToken, ToggleSavePost);
+PostRouter.route("/post/ToggleSavePost/:id").put(
+  isValid,
+  verifyToken,
+  ToggleSavePost
+);
