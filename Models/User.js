@@ -30,7 +30,7 @@ const UserSchema = new Schema(
     },
     gender: {
       type: String,
-      required: true,
+      required: false,
     },
     bio: {
       type: String,

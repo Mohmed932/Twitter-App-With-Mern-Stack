@@ -14,15 +14,15 @@ const PostSchema = new Schema(
       ref: "User",
       require: true,
     },
-    authorUserName: {
-      type: String,
-    },
-    authorUser: {
-      type: String,
-    },
-    authorimageProfile: {
-      type: String,
-    },
+    // authorUserName: {
+    //   type: String,
+    // },
+    // authorUser: {
+    //   type: String,
+    // },
+    // authorimageProfile: {
+    //   type: String,
+    // },
     comments: {
       type: Number,
       default: 0,
@@ -34,9 +34,6 @@ const PostSchema = new Schema(
         imageId: null,
       },
     },
-    isSaved:{
-      type: Boolean,
-    },
     likes: [
       {
         type: Schema.Types.ObjectId,
@@ -47,9 +44,6 @@ const PostSchema = new Schema(
   { timestamps: true }
 );
 
-// PostSchema.virtual("comments", {
-//   ref: "Comments",
-//   foreignField: "PostId",
-//   localField: "_id",
-// });
+
+
 export const Post = model("Post", PostSchema);

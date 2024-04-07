@@ -10,16 +10,17 @@ import { User } from "../Models/User.js";
 
 // create a new post
 export const CreatePost = async (req, res) => {
+  const user = await User.findOne({_id:req.user._id})
   try {
-    let user;
+    let post;
     if (req.file) {
       const result = await Uploadimage(`images/${req.file.filename}`);
-      user = await Post.create({
+      post = await Post.create({
         title: req.body.title,
         author: req.user._id,
-        authorUserName: req.user.username,
-        authorUser: `${req.user.name} ${req.user.surname}`,
-        authorimageProfile: req.user.imageProfile.sourceImage,
+        // authorUserName: req.user.username,
+        // authorUser: `${req.user.name} ${req.user.surname}`,
+        // authorimageProfile: req.user.imageProfile.sourceImage,
         postImage: {
           url: result.secure_url,
           imageId: result.public_id,
@@ -27,15 +28,20 @@ export const CreatePost = async (req, res) => {
       });
       fs.unlinkSync(`images/${req.file.filename}`);
     } else {
-      user = await Post.create({
+      post = await Post.create({
         title: req.body.title,
         author: req.user._id,
-        authorUserName: req.user.username,
-        authorUser: `${req.user.name} ${req.user.surname}`,
-        authorimageProfile: req.user.imageProfile.sourceImage,
+        // authorUserName: req.user.username,
+        // authorUser: `${req.user.name} ${req.user.surname}`,
+        // authorimageProfile: req.user.imageProfile.sourceImage,
       });
     }
-    return res.json({ user });
+    post._doc.authorimageProfile = user.imageProfile.sourceImage;
+    post._doc.authorUser = user.name + ' ' + user.surname;
+    post._doc.authorUserName = user.username;
+    await post.save();
+    console.log(post)
+    return res.json({ post });
   } catch (error) {
     return res.status(500).json({ error: `Internal Server Error : ${error}` });
   }
@@ -51,10 +57,18 @@ export const GetPosts = async (req, res) => {
       return res.status(404).json({ message: "User or Posts Not Found" });
     }
 
-    posts.forEach((post) => {
+    for (const post of posts) {
       const isSaved = userPostSaved.postSaved.includes(post._id);
-      post.isSaved = isSaved;
-    });
+      post._doc.isSaved = isSaved;
+      const user = await User.findOne({ _id: post.author });
+      if (user) {
+        const { imageProfile, name, surname, username } = user;
+        post._doc.authorimageProfile = imageProfile.sourceImage;
+        post._doc.authorUser = name + ' ' + surname;
+        post._doc.authorUserName = username;
+      }
+    }
+    
     return res.json({ posts });
   } catch (error) {
     return res
@@ -66,8 +80,8 @@ export const GetPosts = async (req, res) => {
 export const GetPostsprofile = async (req, res) => {
   try {
     const _id = req.params.id;
-    const userPostSaved = await User.findOne({ _id });
-    const posts = await Post.find({ author: _id })
+    const userPostSaved = await User.findOne({ _id }); 
+    const posts = await Post.find({ author: userPostSaved._id })
       .sort({ createdAt: -1 })
       .limit(10);
 
@@ -75,10 +89,17 @@ export const GetPostsprofile = async (req, res) => {
       return res.status(404).json({ message: "User or Posts Not Found" });
     }
 
-    posts.forEach((post) => {
+    for (const post of posts) {
       const isSaved = userPostSaved.postSaved.includes(post._id);
-      post.isSaved = isSaved;
-    });
+      post._doc.isSaved = isSaved;
+      const user = await User.findOne({ _id: post.author });
+      if (user) {
+        const { imageProfile, name, surname, username } = user;
+        post._doc.authorimageProfile = imageProfile.sourceImage;
+        post._doc.authorUser = name + ' ' + surname;
+        post._doc.authorUserName = username;
+      }
+    }
     return res.json({ posts });
   } catch (error) {
     return res
@@ -102,6 +123,17 @@ export const GetPostSaved = async (req, res) => {
     const posts = await Post.find({ _id: { $in: PostsSaved } })
       .sort({ createdAt: -1 })
       .limit(10);
+      for (const post of posts) {
+        const isSaved = userPostSaved.postSaved.includes(post._id);
+        post._doc.isSaved = isSaved;
+        const user = await User.findOne({ _id: post.author });
+        if (user) {
+          const { imageProfile, name, surname, username } = user;
+          post._doc.authorimageProfile = imageProfile.sourceImage;
+          post._doc.authorUser = name + ' ' + surname;
+          post._doc.authorUserName = username;
+        }
+      }
     return res.json({ posts });
   } catch (error) {
     return res
