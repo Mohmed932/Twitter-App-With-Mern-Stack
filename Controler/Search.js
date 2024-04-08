@@ -27,7 +27,7 @@ export const SearchPeolpeByUsername = async (req, res) => {
     );
     return res.json({ users });
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: `Internal Server Error : ${error}` });
   }
 };
 export const SearchPostsByTitle = async (req, res) => {
