@@ -12,18 +12,6 @@ const CommentsSchema = new Schema(
       ref: "User",
       required: true,
     },
-    username: {
-      type: String,
-      required: true,
-    },
-    fullname: {
-      type: String,
-      required: true,
-    },
-    imageProfile: {
-      type: String,
-      required: true,
-    },
     text: {
       type: String,
       required: true,

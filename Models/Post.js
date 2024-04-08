@@ -14,15 +14,6 @@ const PostSchema = new Schema(
       ref: "User",
       require: true,
     },
-    // authorUserName: {
-    //   type: String,
-    // },
-    // authorUser: {
-    //   type: String,
-    // },
-    // authorimageProfile: {
-    //   type: String,
-    // },
     comments: {
       type: Number,
       default: 0,
@@ -43,7 +34,5 @@ const PostSchema = new Schema(
   },
   { timestamps: true }
 );
-
-
 
 export const Post = model("Post", PostSchema);

@@ -7,6 +7,7 @@ import { PostRouter } from "./Routing/Post.js";
 import { CommentRouter } from "./Routing/Comments.js";
 import { errorHandler } from "./Utiles/Error.js";
 import { UserInformation } from "./Routing/UserInFormation.js";
+import { SearchRouter } from "./Routing/Search.js";
 
 const app = express();
 config();
@@ -14,6 +15,7 @@ config();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(SearchRouter);
 app.use(UserRouter);
 app.use(PostRouter);
 app.use(CommentRouter);

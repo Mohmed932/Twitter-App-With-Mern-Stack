@@ -10,7 +10,7 @@ import { User } from "../Models/User.js";
 
 // create a new post
 export const CreatePost = async (req, res) => {
-  const user = await User.findOne({_id:req.user._id})
+  const user = await User.findOne({ _id: req.user._id });
   try {
     let post;
     if (req.file) {
@@ -18,9 +18,6 @@ export const CreatePost = async (req, res) => {
       post = await Post.create({
         title: req.body.title,
         author: req.user._id,
-        // authorUserName: req.user.username,
-        // authorUser: `${req.user.name} ${req.user.surname}`,
-        // authorimageProfile: req.user.imageProfile.sourceImage,
         postImage: {
           url: result.secure_url,
           imageId: result.public_id,
@@ -31,16 +28,16 @@ export const CreatePost = async (req, res) => {
       post = await Post.create({
         title: req.body.title,
         author: req.user._id,
-        // authorUserName: req.user.username,
-        // authorUser: `${req.user.name} ${req.user.surname}`,
-        // authorimageProfile: req.user.imageProfile.sourceImage,
       });
     }
-    post._doc.authorimageProfile = user.imageProfile.sourceImage;
-    post._doc.authorUser = user.name + ' ' + user.surname;
-    post._doc.authorUserName = user.username;
+    post._doc.author = {
+      _id: user._id,
+      imageProfile: user.imageProfile,
+      name: user.name,
+      surname: user.surname,
+      username: user.username,
+    };
     await post.save();
-    console.log(post)
     return res.json({ post });
   } catch (error) {
     return res.status(500).json({ error: `Internal Server Error : ${error}` });
@@ -51,24 +48,19 @@ export const CreatePost = async (req, res) => {
 export const GetPosts = async (req, res) => {
   try {
     const userPostSaved = await User.findOne({ _id: req.user._id });
-    const posts = await Post.find().sort({ createdAt: -1 }).limit(10);
-
-    if (!userPostSaved || !posts) {
-      return res.status(404).json({ message: "User or Posts Not Found" });
+    const posts = await Post.find().sort({ createdAt: -1 }).limit(10).populate({
+      path: "author",
+      select: "imageProfile name surname username _id",
+      model: User,
+    });
+    if (!userPostSaved) {
+      return res.status(404).json({ message: "User Not Found" });
     }
 
     for (const post of posts) {
       const isSaved = userPostSaved.postSaved.includes(post._id);
       post._doc.isSaved = isSaved;
-      const user = await User.findOne({ _id: post.author });
-      if (user) {
-        const { imageProfile, name, surname, username } = user;
-        post._doc.authorimageProfile = imageProfile.sourceImage;
-        post._doc.authorUser = name + ' ' + surname;
-        post._doc.authorUserName = username;
-      }
     }
-    
     return res.json({ posts });
   } catch (error) {
     return res
@@ -80,11 +72,15 @@ export const GetPosts = async (req, res) => {
 export const GetPostsprofile = async (req, res) => {
   try {
     const _id = req.params.id;
-    const userPostSaved = await User.findOne({ _id }); 
+    const userPostSaved = await User.findOne({ _id });
     const posts = await Post.find({ author: userPostSaved._id })
       .sort({ createdAt: -1 })
-      .limit(10);
-
+      .limit(10)
+      .populate({
+        path: "author",
+        select: "imageProfile name surname username _id",
+        model: User,
+      });
     if (!userPostSaved || !posts) {
       return res.status(404).json({ message: "User or Posts Not Found" });
     }
@@ -92,13 +88,6 @@ export const GetPostsprofile = async (req, res) => {
     for (const post of posts) {
       const isSaved = userPostSaved.postSaved.includes(post._id);
       post._doc.isSaved = isSaved;
-      const user = await User.findOne({ _id: post.author });
-      if (user) {
-        const { imageProfile, name, surname, username } = user;
-        post._doc.authorimageProfile = imageProfile.sourceImage;
-        post._doc.authorUser = name + ' ' + surname;
-        post._doc.authorUserName = username;
-      }
     }
     return res.json({ posts });
   } catch (error) {
@@ -122,18 +111,16 @@ export const GetPostSaved = async (req, res) => {
     // استخدم قيمة PostsSaved في استعلام find
     const posts = await Post.find({ _id: { $in: PostsSaved } })
       .sort({ createdAt: -1 })
-      .limit(10);
-      for (const post of posts) {
-        const isSaved = userPostSaved.postSaved.includes(post._id);
-        post._doc.isSaved = isSaved;
-        const user = await User.findOne({ _id: post.author });
-        if (user) {
-          const { imageProfile, name, surname, username } = user;
-          post._doc.authorimageProfile = imageProfile.sourceImage;
-          post._doc.authorUser = name + ' ' + surname;
-          post._doc.authorUserName = username;
-        }
-      }
+      .limit(10)
+      .populate({
+        path: "author",
+        select: "imageProfile name surname username _id",
+        model: "User",
+      });
+    for (const post of posts) {
+      const isSaved = userPostSaved.postSaved.includes(post._id);
+      post._doc.isSaved = isSaved;
+    }
     return res.json({ posts });
   } catch (error) {
     return res

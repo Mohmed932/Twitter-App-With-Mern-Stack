@@ -12,16 +12,21 @@ export const CreateComment = async (req, res) => {
       return res.status(404).json({ message: "No such post or post deleted" });
     }
     const userId = await User.findById(req.user._id);
-    const Comment = new Comments({
+    const Comment = await Comments.create({
       PostId: postId._id,
       userId: userId._id,
-      username: userId.username,
-      fullname: userId.name + " " + userId.surname,
-      imageProfile: userId.imageProfile.sourceImage,
       text: req.body.text,
     });
-    await Comment.save();
-    return res.status(203).json({ Comment });
+    const newComment = {
+      _id: userId._id,
+      imageProfile: userId.imageProfile,
+      name: userId.name,
+      surname: userId.surname,
+      username: userId.username,
+    };
+    Comment._doc.userId = newComment;
+    console.log(Comment);
+    return res.status(200).json({ Comment });
   } catch (error) {
     return res.status(500).json({ error: `Internal Server Error :${error}` });
   }
@@ -29,20 +34,19 @@ export const CreateComment = async (req, res) => {
 
 export const GetComment = async (req, res) => {
   try {
-    const Comment = await Comments.find({ PostId: req.params.id }).sort({
-      createdAt: -1,
-    });
-    if (!Comment) {
-      return res
-        .status(404)
-        .json({ message: "No such comment or post deleted" });
-    }
-    return res.json({ Comment });
+    const comments = await Comments.find({ PostId: req.params.id })
+      .sort({ createdAt: -1 })
+      .populate({
+        // هذا يحدد الحقل في موديل userId
+        path: "userId",
+        select: "imageProfile name surname username _id",
+        model: User,
+      });
+    return res.json({ Comment: comments });
   } catch (error) {
-    return res.status(500).json({ error: `Internal Server Error :${error}` });
+    return res.status(500).json({ error: `Internal Server Error: ${error}` });
   }
 };
-
 export const DeleteComment = async (req, res) => {
   try {
     const Comment = await Comments.findById(req.params.id);
