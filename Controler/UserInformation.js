@@ -1,4 +1,5 @@
 import { User } from "../Models/User.js";
+import { DeleteNotifications } from "./Notifications.js";
 
 export const getUsers = async (req, res) => {
   try {
@@ -42,7 +43,7 @@ export const getUsers = async (req, res) => {
   }
 };
 
-export const SendFollowRequests = async (req, res) => {
+export const SendFollowRequests = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const { followRequests, followers } = await User.findOne(
@@ -72,7 +73,7 @@ export const SendFollowRequests = async (req, res) => {
       { $push: { followRequests: req.user._id } },
       { new: true }
     );
-    return res.json({ message: "You are now send follow" });
+    next();
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
   }
@@ -135,6 +136,7 @@ export const UnFollowRequests = async (req, res) => {
       { _id: req.user._id },
       { $pull: { allFollowRequestsISend: _id } }
     );
+    DeleteNotifications(req, res);
     return res.json({ UnFollowRequests });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });

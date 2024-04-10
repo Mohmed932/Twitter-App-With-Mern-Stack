@@ -12,7 +12,7 @@ const PostSchema = new Schema(
     author: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      require: true,
+      required: true,
     },
     comments: {
       type: Number,

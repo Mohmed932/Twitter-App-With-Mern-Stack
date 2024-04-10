@@ -14,6 +14,7 @@ import {
   getUsers,
 } from "../Controler/UserInformation.js";
 import { isValid } from "../Middelware/IsValid.js";
+import { CreateNotifications } from "../Controler/Notifications.js";
 
 export const UserInformation = Router();
 
@@ -33,7 +34,8 @@ UserInformation.route("/users/GetFolloweRequests").get(
 UserInformation.route("/users/sendfollowRequests/:id").put(
   isValid,
   verifyToken,
-  SendFollowRequests
+  SendFollowRequests,
+  CreateNotifications
 );
 UserInformation.route("/users/AcceptFollowRequest/:id").put(
   isValid,

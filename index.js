@@ -8,6 +8,7 @@ import { CommentRouter } from "./Routing/Comments.js";
 import { errorHandler } from "./Utiles/Error.js";
 import { UserInformation } from "./Routing/UserInFormation.js";
 import { SearchRouter } from "./Routing/Search.js";
+import { NotificationsRouter } from "./Routing/Notifications.js";
 
 const app = express();
 config();
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(SearchRouter);
 app.use(UserRouter);
+app.use(NotificationsRouter);
 app.use(PostRouter);
 app.use(CommentRouter);
 app.use(UserInformation);
