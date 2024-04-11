@@ -1,6 +1,7 @@
 import { Comments } from "../Models/Comments.js";
 import { Post } from "../Models/Post.js";
 import { User } from "../Models/User.js";
+import { CreateNotifications } from "../Controler/Notifications.js";
 
 export const CreateComment = async (req, res) => {
   try {
@@ -15,7 +16,7 @@ export const CreateComment = async (req, res) => {
     const Comment = await Comments.create({
       PostId: postId._id,
       userId: userId._id,
-      text: req.body.text,
+      text: req.body.textComment,
     });
     const newComment = {
       _id: userId._id,
@@ -25,7 +26,7 @@ export const CreateComment = async (req, res) => {
       username: userId.username,
     };
     Comment._doc.userId = newComment;
-    console.log(Comment);
+    await CreateNotifications(req, res, postId.author);
     return res.status(200).json({ Comment });
   } catch (error) {
     return res.status(500).json({ error: `Internal Server Error :${error}` });

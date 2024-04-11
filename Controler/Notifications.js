@@ -5,11 +5,14 @@ export const GetNotifications = async (req, res) => {
   try {
     const notifications = await Notifications.find({
       to: req.user._id,
-    }).populate({
-      path: "from",
-      select: "imageProfile name surname username _id",
-      model: User,
-    });
+    })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate({
+        path: "from",
+        select: "imageProfile name surname username _id",
+        model: User,
+      });
     if (!notifications) {
       return res.status(404).json({ message: "Notifications Not Found" });
     }
@@ -18,16 +21,14 @@ export const GetNotifications = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-export const CreateNotifications = async (req, res) => {
+export const CreateNotifications = async (req, res, id) => {
   try {
-    const id = req.params.id;
     const notifications = new Notifications({
       from: req.user._id,
       to: id,
       text: req.body.text,
     });
     await notifications.save();
-    return res.json(notifications);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

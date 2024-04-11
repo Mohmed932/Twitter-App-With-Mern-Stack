@@ -34,8 +34,7 @@ UserInformation.route("/users/GetFolloweRequests").get(
 UserInformation.route("/users/sendfollowRequests/:id").put(
   isValid,
   verifyToken,
-  SendFollowRequests,
-  CreateNotifications
+  SendFollowRequests
 );
 UserInformation.route("/users/AcceptFollowRequest/:id").put(
   isValid,

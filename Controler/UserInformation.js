@@ -1,5 +1,5 @@
 import { User } from "../Models/User.js";
-import { DeleteNotifications } from "./Notifications.js";
+import { CreateNotifications, DeleteNotifications } from "./Notifications.js";
 
 export const getUsers = async (req, res) => {
   try {
@@ -43,7 +43,7 @@ export const getUsers = async (req, res) => {
   }
 };
 
-export const SendFollowRequests = async (req, res, next) => {
+export const SendFollowRequests = async (req, res) => {
   try {
     const _id = req.params.id;
     const { followRequests, followers } = await User.findOne(
@@ -73,12 +73,13 @@ export const SendFollowRequests = async (req, res, next) => {
       { $push: { followRequests: req.user._id } },
       { new: true }
     );
-    next();
+    await CreateNotifications(req, res, _id);
+    return res.json({ message: "Send Request Success" });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
   }
 };
-export const AcceptFollowRequests = async (req, res) => {
+export const AcceptFollowRequests = async (req, res, next) => {
   try {
     const _id = req.params.id;
     // check if _id is already sending a follow request
@@ -110,6 +111,7 @@ export const AcceptFollowRequests = async (req, res) => {
       },
       { new: true }
     );
+    await CreateNotifications(req, res, _id);
     return res.json({ AcceptFollowRequests });
   } catch (error) {
     return res.status(500).json({ message: `Server Error: ${error}` });

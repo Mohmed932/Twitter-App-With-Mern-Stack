@@ -7,6 +7,7 @@ import {
 } from "../Utiles/Cloudinary.js";
 import { Comments } from "../Models/Comments.js";
 import { User } from "../Models/User.js";
+import { CreateNotifications } from "../Controler/Notifications.js";
 
 // create a new post
 export const CreatePost = async (req, res) => {
@@ -38,6 +39,11 @@ export const CreatePost = async (req, res) => {
       username: user.username,
     };
     await post.save();
+    (async () => {
+      user.followers.map((userId) => {
+        CreateNotifications(req, res, userId);
+      });
+    })();
     return res.json({ post });
   } catch (error) {
     return res.status(500).json({ error: `Internal Server Error : ${error}` });
