@@ -53,18 +53,18 @@ export const CreatePost = async (req, res) => {
 // get all the posts
 export const GetPosts = async (req, res) => {
   try {
-    const userPostSaved = await User.findOne({ _id: req.user._id });
+    const user = await User.findOne({ _id: req.user._id });
     const posts = await Post.find().sort({ createdAt: -1 }).limit(10).populate({
       path: "author",
       select: "imageProfile name surname username _id",
       model: User,
     });
-    if (!userPostSaved) {
+    if (!user) {
       return res.status(404).json({ message: "User Not Found" });
     }
 
     for (const post of posts) {
-      const isSaved = userPostSaved.postSaved.includes(post._id);
+      const isSaved = user.postSaved.includes(post._id);
       post._doc.isSaved = isSaved;
     }
     return res.json({ posts });

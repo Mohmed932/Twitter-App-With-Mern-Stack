@@ -266,8 +266,8 @@ export const GetFollowing = async (req, res) => {
     );
     Following.map((i) => {
       const isfollowing = me.following.includes(i._id);
-      const Requested = me.allFollowRequestsISend.includes(i._id);
       i._doc.isFollowing = isfollowing;
+      const Requested = me.allFollowRequestsISend.includes(i._id);
       i._doc.Requested = Requested;
     });
     return res.json({ Following });
