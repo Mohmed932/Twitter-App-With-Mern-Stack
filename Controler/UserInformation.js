@@ -322,6 +322,7 @@ export const UserProfile = async (req, res) => {
         imageCover: 1,
         followersCount: 1,
         followingCount: 1,
+        createdAt: 1,
       },
       { new: true }
     );
