@@ -119,6 +119,7 @@ export const UserLogin = async (req, res) => {
     return res.json({
       message: "You have been logged in successfully",
       token,
+      _id: user._id,
     });
   } catch (error) {
     return res.json({ message: `Server Error: ${error}` });
