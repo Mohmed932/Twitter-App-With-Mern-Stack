@@ -47,7 +47,7 @@ export const UserSignUp = async (req, res) => {
       token,
     });
     await SendEmail.save();
-    const linkVeryfation = `http://localhost:3000/Confirm_email/${SaveUser._id}/confirm_token/${token}`;
+    const linkVeryfation = `https://uber-swart.vercel.app/Confirm_email/${SaveUser._id}/confirm_token/${token}`;
     await SendMAil(
       linkVeryfation,
       SaveUser.email,
@@ -87,7 +87,7 @@ export const UserLogin = async (req, res) => {
         token,
       });
       await SendEmail.save();
-      const linkVeryfation = `http://localhost:3000/Confirm_email/${user._id}/confirm_token/${token}`;
+      const linkVeryfation = `https://uber-swart.vercel.app/Confirm_email/${user._id}/confirm_token/${token}`;
       await SendMAil(
         linkVeryfation,
         user.email,
