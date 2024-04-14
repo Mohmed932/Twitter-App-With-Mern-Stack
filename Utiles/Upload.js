@@ -1,9 +1,13 @@
 import multer from "multer";
-// import path from "path";
+// import { fileURLToPath } from 'url';
+// import path from 'path';
 
-// const __filename = new URL(import.meta.url).pathname;
+// const __filename = fileURLToPath(import.meta.url);
 // const __dirname = path.dirname(__filename);
-// const photopath = path.join(__dirname,'../images')
+
+// console.log(__filename); // Full path to the current file
+// console.log(__dirname);  // Directory containing the current file
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "images");
