@@ -3,17 +3,17 @@ import { v2 as cloudinary } from "cloudinary";
 
 // Configure Cloudinary with your API key, secret, and cloud name
 
-cloudinary.config({
-  cloud_name: "dbqujitb1",
-  api_key: "779544461378864",
-  api_secret: "ihXY4qCJvOjHtCR7kGIhwiV28Qc",
-});
-
 // cloudinary.config({
-//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//   api_key: process.env.CLOUDINARY_API_KEY,
-//   api_secret: process.env.CLOUDINARY_API_SECRET,
+//   cloud_name: "dbqujitb1",
+//   api_key: "779544461378864",
+//   api_secret: "ihXY4qCJvOjHtCR7kGIhwiV28Qc",
 // });
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Upload the image to Cloudinary
 export const Uploadimage = async (imagePath) => {
